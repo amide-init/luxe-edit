@@ -1,0 +1,10 @@
+{
+  "name": "luxe-edit-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "author": "amin uddin",
+  "license": "MIT"
+}
