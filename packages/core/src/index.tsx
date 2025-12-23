@@ -1,8 +1,12 @@
+import React from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+
+// Export the FloatingToolbarPlugin
+export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin';
 
 // Define a default theme using CSS variables for easy customization
 const defaultTheme = {
@@ -13,7 +17,13 @@ const defaultTheme = {
   }
 };
 
-export function LuxeEditor({ initialConfig }: { initialConfig: any }) {
+export function LuxeEditor({ 
+  initialConfig, 
+  children 
+}: { 
+  initialConfig: any;
+  children?: React.ReactNode;
+}) {
   const config = {
     ...initialConfig,
     theme: defaultTheme,
@@ -29,7 +39,7 @@ export function LuxeEditor({ initialConfig }: { initialConfig: any }) {
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />
-        {/* We will add more plugins here in the next steps */}
+        {children}
       </div>
     </LexicalComposer>
   );

@@ -5,6 +5,11 @@
     "packages/*",
     "apps/*"
   ],
+  "scripts": {
+    "build": "yarn workspace @luxe-edit/core build",
+    "dev": "yarn workspace demo dev",
+    "build:demo": "yarn workspace demo build"
+  },
   "author": "amin uddin",
   "license": "MIT"
 }
