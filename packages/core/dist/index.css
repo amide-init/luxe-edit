@@ -1,0 +1,20 @@
+:root {
+    --luxe-primary: #3b82f6;
+    --luxe-border: #e5e7eb;
+    --luxe-bg: #ffffff;
+  }
+  
+  .luxe-editor-container {
+    border: 1px solid var(--luxe-border);
+    border-radius: 8px;
+    background: var(--luxe-bg);
+    padding: 1rem;
+  }
+  
+  .luxe-input {
+    min-height: 200px;
+    outline: none;
+  }
+  
+  .luxe-bold { font-weight: bold; }
+  .luxe-italic { font-style: italic; }
