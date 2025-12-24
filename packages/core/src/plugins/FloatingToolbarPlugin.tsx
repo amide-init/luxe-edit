@@ -3,9 +3,16 @@ import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from 'lexical';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-export function FloatingToolbarPlugin() {
+interface FloatingToolbarPluginProps {
+  enabled?: boolean;
+}
+
+export function FloatingToolbarPlugin({ enabled = true }: FloatingToolbarPluginProps) {
   const [editor] = useLexicalComposerContext();
   const [coords, setCoords] = useState<{ x: number, y: number } | null>(null);
+
+  // If disabled, don't render anything
+  if (!enabled) return null;
 
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
