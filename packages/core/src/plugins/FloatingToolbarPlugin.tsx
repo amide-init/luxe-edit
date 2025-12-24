@@ -1,10 +1,11 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, $createParagraphNode, $isElementNode } from 'lexical';
+import { $patchStyleText } from '@lexical/selection';
 import { $createHeadingNode, $isHeadingNode, HeadingTagType } from '@lexical/rich-text';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ToolbarItem } from '../types/toolbar';
-import { getToolbarLabel } from './Toolbar';
+import { getToolbarLabel, defaultColors } from './Toolbar';
 
 interface FloatingToolbarPluginProps {
   enabled?: boolean;
@@ -20,7 +21,7 @@ const defaultFloatingToolbarItems: ToolbarItem[] = [
 
 // Filter items to only show basic text formatting options suitable for floating toolbar
 function filterFloatingToolbarItems(items: ToolbarItem[]): ToolbarItem[] {
-  const allowedTypes = ['bold', 'italic', 'underline', 'strikethrough'];
+  const allowedTypes = ['bold', 'italic', 'underline', 'strikethrough', 'textColor', 'backgroundColor'];
   return items.filter(item => allowedTypes.includes(item.type));
 }
 
@@ -131,8 +132,33 @@ export function FloatingToolbarPlugin({
     };
   }, [updateToolbar]);
 
-  const handleToolbarAction = useCallback((item: ToolbarItem) => {
+  const handleToolbarAction = useCallback((item: ToolbarItem, color?: string): void => {
     const { type } = item;
+
+    // Handle color formatting
+    if (type === 'textColor' && color) {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          $patchStyleText(selection, {
+            color: color,
+          });
+        }
+      });
+      return;
+    }
+
+    if (type === 'backgroundColor' && color) {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          $patchStyleText(selection, {
+            'background-color': color,
+          });
+        }
+      });
+      return;
+    }
 
     // Handle text formatting commands (bold, italic, underline, strikethrough)
     if (type === 'bold' || type === 'italic' || type === 'underline' || type === 'strikethrough') {
@@ -211,6 +237,53 @@ export function FloatingToolbarPlugin({
         const label = item.label || getToolbarLabel(item.type);
         const isHeading = item.type.startsWith('heading');
         const headingLevel = isHeading ? parseInt(item.type.replace('heading', '')) : null;
+
+        // Color buttons in floating toolbar - simplified version
+        if (item.type === 'textColor' || item.type === 'backgroundColor') {
+          const colors = item.colors || defaultColors.slice(0, 6); // Show 6 colors in floating toolbar
+          return (
+            <div key={`${item.type}-${index}`} style={{ display: 'flex', gap: '2px' }}>
+              {item.color ? (
+                <button
+                  onClick={() => handleToolbarAction(item, item.color)}
+                  title={`${item.type === 'textColor' ? 'Text' : 'Background'} Color`}
+                  style={{
+                    padding: '4px 8px',
+                    border: '1px solid #e5e7eb',
+                    background: item.type === 'backgroundColor' ? item.color : 'white',
+                    color: item.type === 'textColor' ? item.color : '#000',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    minWidth: '28px',
+                    height: '28px',
+                  }}
+                >
+                  {item.type === 'textColor' ? 'A' : '■'}
+                </button>
+              ) : (
+                colors.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => handleToolbarAction(item, color)}
+                    title={color}
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      border: '1px solid #e5e7eb',
+                      background: item.type === 'backgroundColor' ? color : 'white',
+                      color: item.type === 'textColor' ? color : 'inherit',
+                      cursor: 'pointer',
+                      borderRadius: '3px',
+                      fontSize: '10px',
+                    }}
+                  >
+                    {item.type === 'textColor' && color === '#000000' && 'A'}
+                  </button>
+                ))
+              )}
+            </div>
+          );
+        }
 
         return (
           <button

@@ -19,7 +19,9 @@ function App() {
     { type: 'underline' },
     { type: 'strikethrough' },
     { type: 'divider' },
-    // Note: Headings require additional Lexical nodes setup
+    { type: 'textColor' },  // Color picker for text color
+    { type: 'backgroundColor' },  // Color picker for background color
+    { type: 'divider' },
     { type: 'heading1' },
     { type: 'heading2' },
     { type: 'heading3' },

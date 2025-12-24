@@ -14,9 +14,17 @@ import {
   SELECTION_CHANGE_COMMAND,
   UNDO_COMMAND,
 } from 'lexical';
+import { $patchStyleText } from '@lexical/selection';
 import { $createHeadingNode, $isHeadingNode, HeadingTagType } from '@lexical/rich-text';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { ToolbarItem, ToolbarItemType } from '../types/toolbar';
+
+// Default color palette
+export const defaultColors = [
+  '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff',
+  '#ffff00', '#ff00ff', '#00ffff', '#808080', '#800000',
+  '#008000', '#000080', '#808000', '#800080', '#008080',
+];
 
 // Get label for toolbar item
 export function getToolbarLabel(type: ToolbarItemType): string {
@@ -39,6 +47,8 @@ export function getToolbarLabel(type: ToolbarItemType): string {
     alignCenter: '⬌',
     alignRight: '➡',
     alignJustify: '⬌',
+    textColor: 'A',
+    backgroundColor: '⬛',
   };
   return labels[type] || type;
 }
@@ -60,7 +70,163 @@ interface ToolbarButtonProps {
   item: ToolbarItem;
   active?: boolean;
   disabled?: boolean;
-  onAction: (item: ToolbarItem) => void;
+  onAction: (item: ToolbarItem, color?: string) => void;
+}
+
+function ColorPicker({ 
+  item, 
+  onAction 
+}: { 
+  item: ToolbarItem; 
+  onAction: (item: ToolbarItem, color: string) => void;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const colors = item.colors || defaultColors;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setShowPicker(false);
+      }
+    };
+
+    if (showPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showPicker]);
+
+  if (item.color) {
+    // Single color button
+    return (
+      <button
+        onClick={() => onAction(item, item.color!)}
+        title={`${item.type === 'textColor' ? 'Text' : 'Background'} Color: ${item.color}`}
+        style={{
+          padding: '6px 12px',
+          border: '1px solid #e5e7eb',
+          background: item.type === 'backgroundColor' ? item.color : 'white',
+          color: item.type === 'textColor' ? item.color : '#000',
+          cursor: 'pointer',
+          borderRadius: '4px',
+          minWidth: '40px',
+          height: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {item.icon || getToolbarLabel(item.type)}
+      </button>
+    );
+  }
+
+  // Color picker with palette
+  return (
+    <div style={{ position: 'relative' }} ref={pickerRef}>
+      <button
+        onClick={() => setShowPicker(!showPicker)}
+        title={`${item.type === 'textColor' ? 'Text' : 'Background'} Color`}
+        style={{
+          padding: '6px 12px',
+          border: '1px solid #e5e7eb',
+          background: 'white',
+          cursor: 'pointer',
+          borderRadius: '4px',
+          minWidth: '40px',
+          height: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
+        {item.icon || (
+          <span style={{
+            display: 'block',
+            width: '20px',
+            height: '20px',
+            background: item.type === 'backgroundColor' 
+              ? 'linear-gradient(45deg, #808080 25%, transparent 25%), linear-gradient(-45deg, #808080 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #808080 75%), linear-gradient(-45deg, transparent 75%, #808080 75%)'
+              : 'currentColor',
+            backgroundSize: item.type === 'backgroundColor' ? '8px 8px' : 'auto',
+            backgroundPosition: item.type === 'backgroundColor' ? '0 0, 0 4px, 4px -4px, -4px 0px' : 'auto',
+          }}>
+            {item.type === 'textColor' && (
+              <span style={{ color: '#000', fontSize: '12px' }}>A</span>
+            )}
+          </span>
+        )}
+        <span style={{ marginLeft: '4px', fontSize: '10px' }}>▼</span>
+      </button>
+      {showPicker && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: '4px',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            padding: '8px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: '4px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            zIndex: 1000,
+            minWidth: '160px',
+          }}
+        >
+          {colors.map((color) => (
+            <button
+              key={color}
+              onClick={() => {
+                onAction(item, color);
+                setShowPicker(false);
+              }}
+              title={color}
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '4px',
+                border: '1px solid #e5e7eb',
+                background: item.type === 'backgroundColor' ? color : 'white',
+                color: item.type === 'textColor' ? color : 'inherit',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 'bold',
+              }}
+            >
+              {item.type === 'textColor' && color === '#000000' && 'A'}
+              {item.type === 'backgroundColor' && color === '#ffffff' && (
+                <span style={{ color: '#000', fontSize: '10px' }}>□</span>
+              )}
+            </button>
+          ))}
+          <input
+            type="color"
+            onChange={(e) => {
+              onAction(item, e.target.value);
+              setShowPicker(false);
+            }}
+            style={{
+              gridColumn: '1 / -1',
+              width: '100%',
+              height: '32px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ToolbarButton({ item, active = false, disabled = false, onAction }: ToolbarButtonProps) {
@@ -70,6 +236,11 @@ function ToolbarButton({ item, active = false, disabled = false, onAction }: Too
 
   if (item.type === 'divider') {
     return <Divider />;
+  }
+
+  // Color picker buttons
+  if (item.type === 'textColor' || item.type === 'backgroundColor') {
+    return <ColorPicker item={item} onAction={onAction} />;
   }
 
   return (
@@ -184,7 +355,7 @@ export function Toolbar({ items }: ToolbarProps) {
     );
   }, [editor, $updateToolbar]);
 
-  const handleToolbarAction = useCallback((item: ToolbarItem) => {
+  const handleToolbarAction = useCallback((item: ToolbarItem, color?: string) => {
     const { type } = item;
 
     // Handle undo/redo
@@ -194,6 +365,31 @@ export function Toolbar({ items }: ToolbarProps) {
     }
     if (type === 'redo') {
       editor.dispatchCommand(REDO_COMMAND, undefined);
+      return;
+    }
+
+    // Handle color formatting
+    if (type === 'textColor' && color) {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          $patchStyleText(selection, {
+            color: color,
+          });
+        }
+      });
+      return;
+    }
+
+    if (type === 'backgroundColor' && color) {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          $patchStyleText(selection, {
+            'background-color': color,
+          });
+        }
+      });
       return;
     }
 

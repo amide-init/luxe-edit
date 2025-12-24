@@ -19,10 +19,14 @@ export type ToolbarItemType =
   | 'alignLeft'
   | 'alignCenter'
   | 'alignRight'
-  | 'alignJustify';
+  | 'alignJustify'
+  | 'textColor'
+  | 'backgroundColor';
 
 export interface ToolbarItem {
   type: ToolbarItemType;
   label?: string; // Optional custom label (defaults to type)
   icon?: React.ReactNode; // Optional custom icon
+  color?: string; // For textColor/backgroundColor: hex color value (e.g., '#ff0000')
+  colors?: string[]; // Optional: predefined color palette for color picker
 }
