@@ -2,6 +2,9 @@ import React from 'react';
 
 // Toolbar item types
 export type ToolbarItemType = 
+  | 'undo'
+  | 'redo'
+  | 'divider'
   | 'bold' 
   | 'italic' 
   | 'underline' 
@@ -12,7 +15,11 @@ export type ToolbarItemType =
   | 'heading4'
   | 'heading5'
   | 'heading6'
-  | 'paragraph';
+  | 'paragraph'
+  | 'alignLeft'
+  | 'alignCenter'
+  | 'alignRight'
+  | 'alignJustify';
 
 export interface ToolbarItem {
   type: ToolbarItemType;

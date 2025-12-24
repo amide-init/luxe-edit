@@ -9,16 +9,25 @@ function App() {
   const [showFloatingToolbar, setShowFloatingToolbar] = React.useState(true);
   const [showTopToolbar, setShowTopToolbar] = React.useState(true);
 
-  // Custom toolbar items array
+  // Custom toolbar items array - following Lexical toolbar pattern
   const toolbarItems: ToolbarItem[] = [
+    { type: 'undo' },
+    { type: 'redo' },
+    { type: 'divider' },
     { type: 'bold' },
     { type: 'italic' },
     { type: 'underline' },
     { type: 'strikethrough' },
+    { type: 'divider' },
     // Note: Headings require additional Lexical nodes setup
     { type: 'heading1' },
     { type: 'heading2' },
     { type: 'heading3' },
+    { type: 'divider' },
+    { type: 'alignLeft' },
+    { type: 'alignCenter' },
+    { type: 'alignRight' },
+    { type: 'alignJustify' },
   ];
 
   return (
