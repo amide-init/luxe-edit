@@ -269,15 +269,25 @@ export function FloatingToolbarPlugin({
                     style={{
                       width: '24px',
                       height: '24px',
-                      border: '1px solid #e5e7eb',
+                      border: item.type === 'textColor' ? `3px solid ${color}` : '1px solid #e5e7eb',
                       background: item.type === 'backgroundColor' ? color : 'white',
-                      color: item.type === 'textColor' ? color : 'inherit',
+                      color: item.type === 'textColor' ? '#000' : 'inherit',
                       cursor: 'pointer',
                       borderRadius: '3px',
                       fontSize: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
-                    {item.type === 'textColor' && color === '#000000' && 'A'}
+                    {item.type === 'textColor' && (
+                      <span style={{ 
+                        color: color, 
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        lineHeight: '1',
+                      }}>A</span>
+                    )}
                   </button>
                 ))
               )}

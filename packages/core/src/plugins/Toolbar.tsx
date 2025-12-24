@@ -191,20 +191,35 @@ function ColorPicker({
                 width: '24px',
                 height: '24px',
                 borderRadius: '4px',
-                border: '1px solid #e5e7eb',
+                border: item.type === 'textColor' ? `3px solid ${color}` : '1px solid #e5e7eb',
                 background: item.type === 'backgroundColor' ? color : 'white',
-                color: item.type === 'textColor' ? color : 'inherit',
+                color: item.type === 'textColor' ? '#000' : 'inherit',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '12px',
                 fontWeight: 'bold',
+                position: 'relative',
               }}
             >
-              {item.type === 'textColor' && color === '#000000' && 'A'}
+              {item.type === 'textColor' && (
+                <span style={{ 
+                  color: color, 
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  lineHeight: '1',
+                }}>A</span>
+              )}
               {item.type === 'backgroundColor' && color === '#ffffff' && (
-                <span style={{ color: '#000', fontSize: '10px' }}>□</span>
+                <span style={{ 
+                  color: '#000', 
+                  fontSize: '10px',
+                  border: '1px solid #ccc',
+                  width: '12px',
+                  height: '12px',
+                  display: 'block',
+                }}>□</span>
               )}
             </button>
           ))}
