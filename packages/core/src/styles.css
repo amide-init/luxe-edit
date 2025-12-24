@@ -18,3 +18,46 @@
   
   .luxe-bold { font-weight: bold; }
   .luxe-italic { font-style: italic; }
+  .luxe-underline { text-decoration: underline; }
+  .luxe-strikethrough { text-decoration: line-through; }
+
+  /* Heading styles */
+  .luxe-heading-h1 {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0.67em 0;
+  }
+
+  .luxe-heading-h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0.75em 0;
+  }
+
+  .luxe-heading-h3 {
+    font-size: 1.17em;
+    font-weight: bold;
+    margin: 0.83em 0;
+  }
+
+  .luxe-heading-h4 {
+    font-size: 1em;
+    font-weight: bold;
+    margin: 1em 0;
+  }
+
+  .luxe-heading-h5 {
+    font-size: 0.83em;
+    font-weight: bold;
+    margin: 1.17em 0;
+  }
+
+  .luxe-heading-h6 {
+    font-size: 0.67em;
+    font-weight: bold;
+    margin: 1.33em 0;
+  }
+
+  .luxe-paragraph {
+    margin: 1em 0;
+  }

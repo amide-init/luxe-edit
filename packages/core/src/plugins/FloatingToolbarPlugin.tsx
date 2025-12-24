@@ -1,5 +1,6 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from 'lexical';
+import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND, $createParagraphNode, $isElementNode } from 'lexical';
+import { $createHeadingNode, $isHeadingNode, HeadingTagType } from '@lexical/rich-text';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ToolbarItem } from '../types/toolbar';
@@ -128,9 +129,50 @@ export function FloatingToolbarPlugin({
       return;
     }
 
-    // Note: Heading and paragraph formatting require additional Lexical nodes
-    if (type.startsWith('heading') || type === 'paragraph') {
-      console.warn(`${type} formatting requires additional Lexical nodes. Please ensure your editor config includes the necessary nodes.`);
+    // Handle heading formatting
+    if (type.startsWith('heading')) {
+      const levelNum = parseInt(type.replace('heading', ''));
+      const level = `h${levelNum}` as HeadingTagType;
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+          let element = anchorNode.getKey() === 'root' ? anchorNode : anchorNode.getTopLevelElementOrThrow();
+          const elementKey = element.getKey();
+          const elementNode = editor.getElementByKey(elementKey);
+          
+          if (elementNode !== null && $isElementNode(element)) {
+            const headingNode = $createHeadingNode(level);
+            const children = element.getChildren();
+            headingNode.append(...children);
+            element.replace(headingNode);
+            headingNode.selectEnd();
+          }
+        }
+      });
+      return;
+    }
+
+    // Handle paragraph formatting
+    if (type === 'paragraph') {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+          let element = anchorNode.getKey() === 'root' ? anchorNode : anchorNode.getTopLevelElementOrThrow();
+          const elementKey = element.getKey();
+          const elementNode = editor.getElementByKey(elementKey);
+          
+          if (elementNode !== null && $isHeadingNode(element) && $isElementNode(element)) {
+            const paragraphNode = $createParagraphNode();
+            const children = element.getChildren();
+            paragraphNode.append(...children);
+            element.replace(paragraphNode);
+            paragraphNode.selectEnd();
+          }
+        }
+      });
+      return;
     }
   }, [editor]);
 

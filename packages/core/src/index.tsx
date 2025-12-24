@@ -4,6 +4,8 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { HeadingNode } from '@lexical/rich-text';
+import { ParagraphNode, TextNode } from 'lexical';
 import { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin';
 import { Toolbar } from './plugins/Toolbar';
 
@@ -16,9 +18,19 @@ export type { ToolbarItemType } from './types/toolbar';
 // Define a default theme using CSS variables for easy customization
 const defaultTheme = {
   paragraph: 'luxe-paragraph',
+  heading: {
+    h1: 'luxe-heading-h1',
+    h2: 'luxe-heading-h2',
+    h3: 'luxe-heading-h3',
+    h4: 'luxe-heading-h4',
+    h5: 'luxe-heading-h5',
+    h6: 'luxe-heading-h6',
+  },
   text: {
     bold: 'luxe-bold',
     italic: 'luxe-italic',
+    underline: 'luxe-underline',
+    strikethrough: 'luxe-strikethrough',
   }
 };
 
@@ -39,10 +51,19 @@ export function LuxeEditor({
   toolbarItems,
   children 
 }: LuxeEditorProps) {
+  // Default nodes for rich text editing
+  const defaultNodes = [
+    HeadingNode,
+    ParagraphNode,
+    TextNode,
+  ];
+
   const config = {
-    ...initialConfig,
+    namespace: 'LuxeEditor',
     theme: defaultTheme,
+    nodes: defaultNodes,
     onError: (error: Error) => console.error(error),
+    ...initialConfig,
   };
 
   // Default toolbar items if none provided

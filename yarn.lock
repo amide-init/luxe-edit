@@ -376,7 +376,7 @@
     "@lexical/utils" "0.39.0"
     lexical "0.39.0"
 
-"@lexical/code@0.39.0":
+"@lexical/code@0.39.0", "@lexical/code@^0.39.0":
   version "0.39.0"
   resolved "https://registry.yarnpkg.com/@lexical/code/-/code-0.39.0.tgz#87ed9c8ae01c9b2176c283317371aac9f4a39f25"
   integrity sha512-3tqFOOzP5Z9nRkZPHZYmIyLXd28gMMrlAD3k2zxiH5vGnAqiYTezR24CpRDw1BaF2c8vCgY/9CNobZzjXivpIA==
@@ -441,7 +441,7 @@
     "@lexical/utils" "0.39.0"
     lexical "0.39.0"
 
-"@lexical/link@0.39.0":
+"@lexical/link@0.39.0", "@lexical/link@^0.39.0":
   version "0.39.0"
   resolved "https://registry.yarnpkg.com/@lexical/link/-/link-0.39.0.tgz#add566f30bf573636c3cbdc320b96945847241a9"
   integrity sha512-L1jSF2BVRHDqIQbKYFcQt3CqtVIphRA3QAW2VooYPNlKeaAb/yfFS+C60GX1cj96b0rMlHKrNC17ik2aEBZKLQ==
@@ -450,7 +450,7 @@
     "@lexical/utils" "0.39.0"
     lexical "0.39.0"
 
-"@lexical/list@0.39.0":
+"@lexical/list@0.39.0", "@lexical/list@^0.39.0":
   version "0.39.0"
   resolved "https://registry.yarnpkg.com/@lexical/list/-/list-0.39.0.tgz#f9cb5e0b9f0c337632310772f5d64967ca9fb745"
   integrity sha512-mxgSxUrakTCHtC+gF30BChQBJTsCMiMgfC2H5VvhcFwXMgsKE/aK9+a+C/sSvvzCmPXqzYsuAcGkJcrY3e5xlw==
@@ -531,7 +531,7 @@
     lexical "0.39.0"
     react-error-boundary "^6.0.0"
 
-"@lexical/rich-text@0.39.0":
+"@lexical/rich-text@0.39.0", "@lexical/rich-text@^0.39.0":
   version "0.39.0"
   resolved "https://registry.yarnpkg.com/@lexical/rich-text/-/rich-text-0.39.0.tgz#f0fb7a4e2252278e0879c214d22c102bd0cd0512"
   integrity sha512-UoSgRi09nLP/mmD3ijdZycr9icnqlb761rzHC1gicuPDdTu0ruxAFbGanSE2h36ihSu0IUHwkpf4gBpgPPqWBw==

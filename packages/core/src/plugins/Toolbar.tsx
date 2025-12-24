@@ -3,6 +3,8 @@ import { mergeRegister } from '@lexical/utils';
 import {
   $getSelection,
   $isRangeSelection,
+  $createParagraphNode,
+  $isElementNode,
   CAN_REDO_COMMAND,
   CAN_UNDO_COMMAND,
   COMMAND_PRIORITY_LOW,
@@ -12,6 +14,7 @@ import {
   SELECTION_CHANGE_COMMAND,
   UNDO_COMMAND,
 } from 'lexical';
+import { $createHeadingNode, $isHeadingNode, HeadingTagType } from '@lexical/rich-text';
 import { useCallback, useEffect, useState } from 'react';
 import { ToolbarItem, ToolbarItemType } from '../types/toolbar';
 
@@ -121,6 +124,7 @@ export function Toolbar({ items }: ToolbarProps) {
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
   const [isStrikethrough, setIsStrikethrough] = useState(false);
+  const [blockType, setBlockType] = useState<string>('paragraph');
 
   const $updateToolbar = useCallback(() => {
     const selection = $getSelection();
@@ -130,8 +134,21 @@ export function Toolbar({ items }: ToolbarProps) {
       setIsItalic(selection.hasFormat('italic'));
       setIsUnderline(selection.hasFormat('underline'));
       setIsStrikethrough(selection.hasFormat('strikethrough'));
+
+      // Update block type (heading level)
+      const anchorNode = selection.anchor.getNode();
+      const element = anchorNode.getKey() === 'root'
+        ? anchorNode
+        : anchorNode.getTopLevelElementOrThrow();
+      const elementKey = element.getKey();
+      const elementDOM = editor.getElementByKey(elementKey);
+
+      if (elementDOM !== null) {
+        const type = $isHeadingNode(element) ? element.getTag() : element.getType();
+        setBlockType(type);
+      }
     }
-  }, []);
+  }, [editor]);
 
   useEffect(() => {
     return mergeRegister(
@@ -204,9 +221,50 @@ export function Toolbar({ items }: ToolbarProps) {
       return;
     }
 
-    // Note: Heading and paragraph formatting require additional Lexical nodes
-    if (type.startsWith('heading') || type === 'paragraph') {
-      console.warn(`${type} formatting requires additional Lexical nodes. Please ensure your editor config includes the necessary nodes.`);
+    // Handle heading formatting
+    if (type.startsWith('heading')) {
+      const levelNum = parseInt(type.replace('heading', ''));
+      const level = `h${levelNum}` as HeadingTagType;
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+          let element = anchorNode.getKey() === 'root' ? anchorNode : anchorNode.getTopLevelElementOrThrow();
+          const elementKey = element.getKey();
+          const elementNode = editor.getElementByKey(elementKey);
+          
+          if (elementNode !== null && $isElementNode(element)) {
+            const headingNode = $createHeadingNode(level);
+            const children = element.getChildren();
+            headingNode.append(...children);
+            element.replace(headingNode);
+            headingNode.selectEnd();
+          }
+        }
+      });
+      return;
+    }
+
+    // Handle paragraph formatting
+    if (type === 'paragraph') {
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const anchorNode = selection.anchor.getNode();
+          let element = anchorNode.getKey() === 'root' ? anchorNode : anchorNode.getTopLevelElementOrThrow();
+          const elementKey = element.getKey();
+          const elementNode = editor.getElementByKey(elementKey);
+          
+          if (elementNode !== null && $isHeadingNode(element) && $isElementNode(element)) {
+            const paragraphNode = $createParagraphNode();
+            const children = element.getChildren();
+            paragraphNode.append(...children);
+            element.replace(paragraphNode);
+            paragraphNode.selectEnd();
+          }
+        }
+      });
+      return;
     }
   }, [editor]);
 
@@ -224,6 +282,20 @@ export function Toolbar({ items }: ToolbarProps) {
         return { active: isUnderline };
       case 'strikethrough':
         return { active: isStrikethrough };
+      case 'heading1':
+        return { active: blockType === 'h1' };
+      case 'heading2':
+        return { active: blockType === 'h2' };
+      case 'heading3':
+        return { active: blockType === 'h3' };
+      case 'heading4':
+        return { active: blockType === 'h4' };
+      case 'heading5':
+        return { active: blockType === 'h5' };
+      case 'heading6':
+        return { active: blockType === 'h6' };
+      case 'paragraph':
+        return { active: blockType === 'paragraph' };
       default:
         return {};
     }
