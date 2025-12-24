@@ -18,8 +18,17 @@
   
   .luxe-bold { font-weight: bold; }
   .luxe-italic { font-style: italic; }
-  .luxe-underline { text-decoration: underline; }
-  .luxe-strikethrough { text-decoration: line-through; }
+  .luxe-underline { 
+    text-decoration: underline !important; 
+  }
+  .luxe-strikethrough { 
+    text-decoration: line-through !important; 
+  }
+  
+  /* Support combined formats */
+  .luxe-underline.luxe-strikethrough {
+    text-decoration: underline line-through !important;
+  }
 
   /* Heading styles */
   .luxe-heading-h1 {

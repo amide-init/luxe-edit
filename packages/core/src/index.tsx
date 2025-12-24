@@ -41,6 +41,7 @@ export interface LuxeEditorProps {
   showFloatingToolbar?: boolean;
   showToolbar?: boolean;
   toolbarItems?: ToolbarItem[];
+  floatingToolbarItems?: ToolbarItem[]; // Separate items for floating toolbar (optional)
   children?: React.ReactNode;
 }
 
@@ -49,6 +50,7 @@ export function LuxeEditor({
   showFloatingToolbar = true,
   showToolbar = false,
   toolbarItems,
+  floatingToolbarItems,
   children 
 }: LuxeEditorProps) {
   // Default nodes for rich text editing
@@ -58,12 +60,20 @@ export function LuxeEditor({
     TextNode,
   ];
 
+  // Merge theme with user's theme if provided
+  const mergedTheme = initialConfig.theme 
+    ? { ...defaultTheme, ...initialConfig.theme }
+    : defaultTheme;
+
+  // Extract theme from initialConfig to avoid override
+  const { theme: _, ...restInitialConfig } = initialConfig;
+
   const config = {
     namespace: 'LuxeEditor',
-    theme: defaultTheme,
+    theme: mergedTheme,
     nodes: defaultNodes,
     onError: (error: Error) => console.error(error),
-    ...initialConfig,
+    ...restInitialConfig,
   };
 
   // Default toolbar items if none provided
@@ -88,7 +98,7 @@ export function LuxeEditor({
         {showFloatingToolbar && (
           <FloatingToolbarPlugin 
             enabled={true} 
-            items={items}
+            items={floatingToolbarItems || items}
           />
         )}
         {children}

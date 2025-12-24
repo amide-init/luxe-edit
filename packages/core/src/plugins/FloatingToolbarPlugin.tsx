@@ -11,22 +11,33 @@ interface FloatingToolbarPluginProps {
   items?: ToolbarItem[];
 }
 
-// Default toolbar items
-const defaultToolbarItems: ToolbarItem[] = [
+// Default floating toolbar items - only essential text formatting
+const defaultFloatingToolbarItems: ToolbarItem[] = [
   { type: 'bold' },
   { type: 'italic' },
+  { type: 'underline' },
 ];
+
+// Filter items to only show basic text formatting options suitable for floating toolbar
+function filterFloatingToolbarItems(items: ToolbarItem[]): ToolbarItem[] {
+  const allowedTypes = ['bold', 'italic', 'underline', 'strikethrough'];
+  return items.filter(item => allowedTypes.includes(item.type));
+}
 
 export function FloatingToolbarPlugin({ 
   enabled = true, 
-  items = defaultToolbarItems 
+  items 
 }: FloatingToolbarPluginProps) {
+  // Use filtered items if provided, otherwise use defaults
+  const floatingItems = items 
+    ? filterFloatingToolbarItems(items).slice(0, 4) // Limit to max 4 items
+    : defaultFloatingToolbarItems;
   const [editor] = useLexicalComposerContext();
   const [coords, setCoords] = useState<{ x: number, y: number } | null>(null);
   const [editorRootElement, setEditorRootElement] = useState<HTMLElement | null>(null);
 
   // If disabled, don't render anything
-  if (!enabled || !items || items.length === 0) return null;
+  if (!enabled || !floatingItems || floatingItems.length === 0) return null;
 
   // Get the editor's root element
   useEffect(() => {
@@ -196,7 +207,7 @@ export function FloatingToolbarPlugin({
         zIndex: 1000
       }}
     >
-      {items.map((item, index) => {
+      {floatingItems.map((item, index) => {
         const label = item.label || getToolbarLabel(item.type);
         const isHeading = item.type.startsWith('heading');
         const headingLevel = isHeading ? parseInt(item.type.replace('heading', '')) : null;
