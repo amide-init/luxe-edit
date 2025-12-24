@@ -2,51 +2,136 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from 'lexical';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { ToolbarItem } from '../types/toolbar';
+import { getToolbarLabel } from './Toolbar';
 
 interface FloatingToolbarPluginProps {
   enabled?: boolean;
+  items?: ToolbarItem[];
 }
 
-export function FloatingToolbarPlugin({ enabled = true }: FloatingToolbarPluginProps) {
+// Default toolbar items
+const defaultToolbarItems: ToolbarItem[] = [
+  { type: 'bold' },
+  { type: 'italic' },
+];
+
+export function FloatingToolbarPlugin({ 
+  enabled = true, 
+  items = defaultToolbarItems 
+}: FloatingToolbarPluginProps) {
   const [editor] = useLexicalComposerContext();
   const [coords, setCoords] = useState<{ x: number, y: number } | null>(null);
+  const [editorRootElement, setEditorRootElement] = useState<HTMLElement | null>(null);
 
   // If disabled, don't render anything
-  if (!enabled) return null;
+  if (!enabled || !items || items.length === 0) return null;
+
+  // Get the editor's root element
+  useEffect(() => {
+    const rootElement = editor.getRootElement();
+    if (rootElement) {
+      setEditorRootElement(rootElement);
+    }
+  }, [editor]);
 
   const updateToolbar = useCallback(() => {
-    const selection = $getSelection();
-    if ($isRangeSelection(selection) && !selection.isCollapsed()) {
-      const domSelection = window.getSelection();
-      if (domSelection && domSelection.rangeCount > 0) {
-        const range = domSelection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        if (rect) {
-          setCoords({ x: rect.left + rect.width / 2, y: rect.top - 40 });
-        }
+    if (!editorRootElement) return;
+
+    const domSelection = window.getSelection();
+    
+    // Check if there's a selection and it's not collapsed
+    if (!domSelection || domSelection.rangeCount === 0 || domSelection.isCollapsed) {
+      setCoords(null);
+      return;
+    }
+
+    try {
+      const range = domSelection.getRangeAt(0);
+      
+      // Check if selection is within the editor
+      if (!editorRootElement.contains(range.commonAncestorContainer)) {
+        setCoords(null);
+        return;
       }
-    } else {
+
+      const rect = range.getBoundingClientRect();
+      
+      // Only show toolbar if selection is valid and visible
+      if (rect && rect.width > 0 && rect.height > 0) {
+        // Verify Lexical also has a selection
+        editor.getEditorState().read(() => {
+          const selection = $getSelection();
+          if (selection && $isRangeSelection(selection) && !selection.isCollapsed()) {
+            setCoords({ 
+              x: rect.left + rect.width / 2, 
+              y: rect.top - 40 
+            });
+          } else {
+            setCoords(null);
+          }
+        });
+      } else {
+        setCoords(null);
+      }
+    } catch (e) {
+      // Selection might be invalid, hide toolbar
       setCoords(null);
     }
-  }, []);
+  }, [editor, editorRootElement]);
 
   useEffect(() => {
-    return editor.registerUpdateListener(({ editorState }) => {
-      editorState.read(() => updateToolbar());
+    if (!editorRootElement) return;
+
+    // Listen to editor updates
+    const removeUpdateListener = editor.registerUpdateListener(() => {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => updateToolbar(), 10);
     });
-  }, [editor, updateToolbar]);
+
+    return () => {
+      removeUpdateListener();
+    };
+  }, [editor, editorRootElement, updateToolbar]);
 
   useEffect(() => {
+    // Listen to mouse events for selection changes
     const handleMouseUp = () => {
-      setTimeout(() => updateToolbar(), 0);
+      setTimeout(() => updateToolbar(), 50);
+    };
+
+    const handleKeyUp = () => {
+      setTimeout(() => updateToolbar(), 50);
+    };
+
+    const handleSelectionChange = () => {
+      setTimeout(() => updateToolbar(), 50);
     };
 
     document.addEventListener('mouseup', handleMouseUp);
-    return () => document.removeEventListener('mouseup', handleMouseUp);
+    document.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('selectionchange', handleSelectionChange);
+
+    return () => {
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
   }, [updateToolbar]);
 
-  const formatText = useCallback((format: 'bold' | 'italic' | 'underline' | 'strikethrough') => {
-    editor.dispatchCommand(FORMAT_TEXT_COMMAND, format);
+  const handleToolbarAction = useCallback((item: ToolbarItem) => {
+    const { type } = item;
+
+    // Handle text formatting commands (bold, italic, underline, strikethrough)
+    if (type === 'bold' || type === 'italic' || type === 'underline' || type === 'strikethrough') {
+      editor.dispatchCommand(FORMAT_TEXT_COMMAND, type);
+      return;
+    }
+
+    // Note: Heading and paragraph formatting require additional Lexical nodes
+    if (type.startsWith('heading') || type === 'paragraph') {
+      console.warn(`${type} formatting requires additional Lexical nodes. Please ensure your editor config includes the necessary nodes.`);
+    }
   }, [editor]);
 
   if (!coords) return null;
@@ -69,44 +154,43 @@ export function FloatingToolbarPlugin({ enabled = true }: FloatingToolbarPluginP
         zIndex: 1000
       }}
     >
-      <button 
-        onClick={() => formatText('bold')}
-        style={{
-          padding: '6px 12px',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          borderRadius: '4px',
-          fontWeight: 'bold'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#f3f4f6';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-        }}
-      >
-        B
-      </button>
-      <button 
-        onClick={() => formatText('italic')}
-        style={{
-          padding: '6px 12px',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          borderRadius: '4px',
-          fontStyle: 'italic'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#f3f4f6';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-        }}
-      >
-        I
-      </button>
+      {items.map((item, index) => {
+        const label = item.label || getToolbarLabel(item.type);
+        const isHeading = item.type.startsWith('heading');
+        const headingLevel = isHeading ? parseInt(item.type.replace('heading', '')) : null;
+
+        return (
+          <button
+            key={`${item.type}-${index}`}
+            onClick={() => handleToolbarAction(item)}
+            title={item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+            style={{
+              padding: '6px 12px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              fontWeight: item.type === 'bold' ? 'bold' : 'normal',
+              fontStyle: item.type === 'italic' ? 'italic' : 'normal',
+              textDecoration: item.type === 'underline' ? 'underline' : item.type === 'strikethrough' ? 'line-through' : 'none',
+              fontSize: headingLevel ? `${18 - headingLevel * 2}px` : '14px',
+              minWidth: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#f3f4f6';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+            }}
+          >
+            {item.icon || label}
+          </button>
+        );
+      })}
     </div>,
     document.body
   );
