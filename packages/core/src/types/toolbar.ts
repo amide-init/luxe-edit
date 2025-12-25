@@ -21,7 +21,8 @@ export type ToolbarItemType =
   | 'alignRight'
   | 'alignJustify'
   | 'textColor'
-  | 'backgroundColor';
+  | 'backgroundColor'
+  | 'fullscreen';
 
 export interface ToolbarItem {
   type: ToolbarItemType;

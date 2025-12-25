@@ -54,6 +54,7 @@ export function LuxeEditor({
   floatingToolbarItems,
   children 
 }: LuxeEditorProps) {
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
   // Default nodes for rich text editing
   const defaultNodes = [
     HeadingNode,
@@ -84,11 +85,15 @@ export function LuxeEditor({
   ];
   const items = toolbarItems || defaultToolbarItems;
 
+  const toggleFullscreen = React.useCallback(() => {
+    setIsFullscreen((prev) => !prev);
+  }, []);
+
   return (
     <LexicalComposer initialConfig={config}>
-      <div className="luxe-editor-container">
+      <div className={`luxe-editor-container ${isFullscreen ? 'luxe-editor-fullscreen' : ''}`}>
         {showToolbar && items && items.length > 0 && (
-          <Toolbar items={items} />
+          <Toolbar items={items} onFullscreenToggle={toggleFullscreen} isFullscreen={isFullscreen} />
         )}
         <RichTextPlugin
           contentEditable={<ContentEditable className="luxe-input" />}

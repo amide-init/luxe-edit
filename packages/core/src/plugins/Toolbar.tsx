@@ -49,6 +49,7 @@ export function getToolbarLabel(type: ToolbarItemType): string {
     alignJustify: '⬌',
     textColor: 'A',
     backgroundColor: '⬛',
+    fullscreen: '⛶',
   };
   return labels[type] || type;
 }
@@ -300,9 +301,11 @@ function ToolbarButton({ item, active = false, disabled = false, onAction }: Too
 
 interface ToolbarProps {
   items: ToolbarItem[];
+  onFullscreenToggle?: () => void;
+  isFullscreen?: boolean;
 }
 
-export function Toolbar({ items }: ToolbarProps) {
+export function Toolbar({ items, onFullscreenToggle, isFullscreen = false }: ToolbarProps) {
   const [editor] = useLexicalComposerContext();
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -372,6 +375,12 @@ export function Toolbar({ items }: ToolbarProps) {
 
   const handleToolbarAction = useCallback((item: ToolbarItem, color?: string) => {
     const { type } = item;
+
+    // Handle fullscreen toggle
+    if (type === 'fullscreen') {
+      onFullscreenToggle?.();
+      return;
+    }
 
     // Handle undo/redo
     if (type === 'undo') {
@@ -477,7 +486,7 @@ export function Toolbar({ items }: ToolbarProps) {
       });
       return;
     }
-  }, [editor]);
+  }, [editor, onFullscreenToggle]);
 
   const getButtonState = (type: ToolbarItemType) => {
     switch (type) {
@@ -493,6 +502,8 @@ export function Toolbar({ items }: ToolbarProps) {
         return { active: isUnderline };
       case 'strikethrough':
         return { active: isStrikethrough };
+      case 'fullscreen':
+        return { active: isFullscreen };
       case 'heading1':
         return { active: blockType === 'h1' };
       case 'heading2':
