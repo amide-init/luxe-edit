@@ -5,7 +5,9 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { HeadingNode } from '@lexical/rich-text';
+import { LinkNode, AutoLinkNode } from '@lexical/link';
 import { ParagraphNode, TextNode } from 'lexical';
 import { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin';
 import { Toolbar } from './plugins/Toolbar';
@@ -60,6 +62,8 @@ export function LuxeEditor({
     HeadingNode,
     ParagraphNode,
     TextNode,
+    LinkNode,
+    AutoLinkNode,
   ];
 
   // Merge theme with user's theme if provided
@@ -101,6 +105,7 @@ export function LuxeEditor({
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />
+        <LinkPlugin />
         {showFloatingToolbar && (
           <FloatingToolbarPlugin 
             enabled={true} 

@@ -23,7 +23,8 @@ export type ToolbarItemType =
   | 'textColor'
   | 'backgroundColor'
   | 'fullscreen'
-  | 'headingDropdown';
+  | 'headingDropdown'
+  | 'link';
 
 export interface ToolbarItem {
   type: ToolbarItemType;

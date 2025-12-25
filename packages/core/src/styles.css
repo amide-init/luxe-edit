@@ -102,3 +102,15 @@
   .luxe-editor-fullscreen .luxe-editor-container {
     padding: 0;
   }
+
+  /* Link styles */
+  .luxe-input a {
+    color: #3b82f6;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .luxe-input a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }

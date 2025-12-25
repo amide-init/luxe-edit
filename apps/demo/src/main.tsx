@@ -23,6 +23,8 @@ function App() {
     { type: 'backgroundColor' },  // Color picker for background color
     { type: 'headingDropdown' },  // Heading dropdown (replaces individual heading buttons)
     { type: 'divider' },
+    { type: 'link' },  // Link insertion/editing
+    { type: 'divider' },
     { type: 'alignLeft' },
     { type: 'alignCenter' },
     { type: 'alignRight' },

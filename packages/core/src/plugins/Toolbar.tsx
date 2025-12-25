@@ -16,6 +16,7 @@ import {
 } from 'lexical';
 import { $patchStyleText } from '@lexical/selection';
 import { $createHeadingNode, $isHeadingNode, HeadingTagType } from '@lexical/rich-text';
+import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { ToolbarItem, ToolbarItemType } from '../types/toolbar';
 
@@ -51,6 +52,7 @@ export function getToolbarLabel(type: ToolbarItemType): string {
     backgroundColor: '⬛',
     fullscreen: '⛶',
     headingDropdown: 'Normal',
+    link: '🔗',
   };
   return labels[type] || type;
 }
@@ -381,6 +383,257 @@ function HeadingDropdown({
   );
 }
 
+function LinkDialog({ 
+  item, 
+  onAction,
+  editor
+}: { 
+  item: ToolbarItem; 
+  onAction: (item: ToolbarItem, color?: string, headingType?: string) => void;
+  editor: ReturnType<typeof useLexicalComposerContext>[0];
+}) {
+  const [showDialog, setShowDialog] = useState(false);
+  const [url, setUrl] = useState('');
+  const [isLink, setIsLink] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const updateLinkState = () => {
+      editor.getEditorState().read(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const nodes = selection.getNodes();
+          let linkParent = null;
+          
+          // Check if any node in the selection has a link parent
+          for (const node of nodes) {
+            let current: any = node.getParent();
+            while (current !== null) {
+              if ($isLinkNode(current)) {
+                linkParent = current;
+                break;
+              }
+              current = current.getParent();
+            }
+            if (linkParent) break;
+          }
+          
+          if (linkParent && $isLinkNode(linkParent)) {
+            setIsLink(true);
+            setUrl(linkParent.getURL());
+          } else {
+            setIsLink(false);
+            setUrl('');
+          }
+        } else {
+          setIsLink(false);
+          setUrl('');
+        }
+      });
+    };
+
+    const unregister = editor.registerUpdateListener(() => {
+      updateLinkState();
+    });
+
+    const unregisterCommand = editor.registerCommand(
+      SELECTION_CHANGE_COMMAND,
+      () => {
+        updateLinkState();
+        return false;
+      },
+      COMMAND_PRIORITY_LOW
+    );
+
+    updateLinkState();
+    return () => {
+      unregister();
+      unregisterCommand();
+    };
+  }, [editor]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
+        setShowDialog(false);
+      }
+    };
+
+    if (showDialog) {
+      document.addEventListener('mousedown', handleClickOutside);
+      // Pre-fill URL if editing existing link
+      if (isLink && url) {
+        // URL is already set from updateLinkState
+      }
+      setTimeout(() => inputRef.current?.focus(), 0);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDialog, isLink, url]);
+
+  const handleLink = () => {
+    if (!url.trim()) {
+      // Remove link if URL is empty
+      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+      setShowDialog(false);
+      setUrl('');
+      return;
+    }
+
+    // Normalize URL
+    let normalizedUrl = url.trim();
+    if (!normalizedUrl.startsWith('http://') && 
+        !normalizedUrl.startsWith('https://') && 
+        !normalizedUrl.startsWith('mailto:') &&
+        !normalizedUrl.startsWith('#') &&
+        !normalizedUrl.startsWith('/')) {
+      normalizedUrl = 'https://' + normalizedUrl;
+    }
+    
+    // Dispatch command to toggle/create the link
+    editor.dispatchCommand(TOGGLE_LINK_COMMAND, normalizedUrl);
+    setShowDialog(false);
+    setUrl('');
+  };
+
+  const handleRemoveLink = () => {
+    // Dispatch command to remove link
+    editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+    setShowDialog(false);
+    setUrl('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleLink();
+    } else if (e.key === 'Escape') {
+      setShowDialog(false);
+      setUrl('');
+    }
+  };
+
+  return (
+    <div style={{ position: 'relative' }} ref={dialogRef}>
+      <button
+        onClick={() => {
+          setShowDialog(!showDialog);
+          // If opening dialog and we're in a link, pre-fill the URL
+          if (!showDialog && isLink) {
+            // URL will be set by updateLinkState
+          }
+        }}
+        title={isLink ? 'Edit Link' : 'Insert Link'}
+        style={{
+          padding: '6px 12px',
+          border: 'none',
+          background: isLink ? '#e5e7eb' : 'transparent',
+          cursor: 'pointer',
+          borderRadius: '4px',
+          minWidth: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'background-color 0.2s',
+        }}
+        onMouseEnter={(e) => {
+          if (!isLink) {
+            e.currentTarget.style.background = '#f3f4f6';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isLink) {
+            e.currentTarget.style.background = 'transparent';
+          } else {
+            e.currentTarget.style.background = '#e5e7eb';
+          }
+        }}
+      >
+        {item.icon || getToolbarLabel(item.type)}
+      </button>
+      {showDialog && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: '4px',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            padding: '12px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            zIndex: 1000,
+            minWidth: '300px',
+          }}
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Enter URL (e.g., https://example.com)"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={handleKeyDown}
+            style={{
+              width: '100%',
+              padding: '8px',
+              border: '1px solid #e5e7eb',
+              borderRadius: '4px',
+              fontSize: '14px',
+              marginBottom: '8px',
+            }}
+          />
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            {isLink && (
+              <button
+                onClick={handleRemoveLink}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #e5e7eb',
+                  background: 'white',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  color: '#dc2626',
+                }}
+              >
+                Remove
+              </button>
+            )}
+            <button
+              onClick={() => setShowDialog(false)}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid #e5e7eb',
+                background: 'white',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                fontSize: '14px',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLink}
+              style={{
+                padding: '6px 12px',
+                border: 'none',
+                background: '#3b82f6',
+                color: 'white',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                fontSize: '14px',
+              }}
+            >
+              {isLink ? 'Update' : 'Insert'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ToolbarButton({ item, active = false, disabled = false, onAction, currentBlockType }: ToolbarButtonProps) {
   const isHeading = item.type.startsWith('heading') && item.type !== 'headingDropdown';
   const headingLevel = isHeading ? parseInt(item.type.replace('heading', '')) : null;
@@ -399,6 +652,8 @@ function ToolbarButton({ item, active = false, disabled = false, onAction, curre
   if (item.type === 'textColor' || item.type === 'backgroundColor') {
     return <ColorPicker item={item} onAction={onAction} />;
   }
+
+  // Link button - handled separately in Toolbar component
 
   return (
     <button
@@ -723,6 +978,12 @@ export function Toolbar({ items, onFullscreenToggle, isFullscreen = false }: Too
     >
       {items.map((item, index) => {
         const state = getButtonState(item.type);
+        
+        // Handle link separately
+        if (item.type === 'link') {
+          return <LinkDialog key={`${item.type}-${index}`} item={item} onAction={handleToolbarAction} editor={editor} />;
+        }
+        
         return (
           <ToolbarButton
             key={`${item.type}-${index}`}
