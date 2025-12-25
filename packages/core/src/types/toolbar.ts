@@ -22,7 +22,8 @@ export type ToolbarItemType =
   | 'alignJustify'
   | 'textColor'
   | 'backgroundColor'
-  | 'fullscreen';
+  | 'fullscreen'
+  | 'headingDropdown';
 
 export interface ToolbarItem {
   type: ToolbarItemType;

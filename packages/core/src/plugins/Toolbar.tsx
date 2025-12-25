@@ -50,6 +50,7 @@ export function getToolbarLabel(type: ToolbarItemType): string {
     textColor: 'A',
     backgroundColor: '⬛',
     fullscreen: '⛶',
+    headingDropdown: 'Normal',
   };
   return labels[type] || type;
 }
@@ -71,7 +72,8 @@ interface ToolbarButtonProps {
   item: ToolbarItem;
   active?: boolean;
   disabled?: boolean;
-  onAction: (item: ToolbarItem, color?: string) => void;
+  onAction: (item: ToolbarItem, color?: string, headingType?: string) => void;
+  currentBlockType?: string;
 }
 
 function ColorPicker({ 
@@ -79,7 +81,7 @@ function ColorPicker({
   onAction 
 }: { 
   item: ToolbarItem; 
-  onAction: (item: ToolbarItem, color: string) => void;
+  onAction: (item: ToolbarItem, color?: string, headingType?: string) => void;
 }) {
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -245,13 +247,152 @@ function ColorPicker({
   );
 }
 
-function ToolbarButton({ item, active = false, disabled = false, onAction }: ToolbarButtonProps) {
-  const isHeading = item.type.startsWith('heading');
+function HeadingDropdown({ 
+  item, 
+  onAction,
+  currentBlockType = 'paragraph'
+}: { 
+  item: ToolbarItem; 
+  onAction: (item: ToolbarItem, color?: string, headingType?: string) => void;
+  currentBlockType?: string;
+}) {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDropdown]);
+
+  const getCurrentLabel = () => {
+    if (currentBlockType === 'paragraph') return 'Normal';
+    if (currentBlockType.startsWith('h')) {
+      const level = currentBlockType.replace('h', '');
+      return `Heading ${level}`;
+    }
+    return 'Normal';
+  };
+
+  const handleHeadingSelect = (headingType: string) => {
+    onAction(item, undefined, headingType);
+    setShowDropdown(false);
+  };
+
+  const headingOptions = [
+    { value: 'paragraph', label: 'Normal' },
+    { value: 'h1', label: 'Heading 1' },
+    { value: 'h2', label: 'Heading 2' },
+    { value: 'h3', label: 'Heading 3' },
+    { value: 'h4', label: 'Heading 4' },
+    { value: 'h5', label: 'Heading 5' },
+    { value: 'h6', label: 'Heading 6' },
+  ];
+
+  return (
+    <div style={{ position: 'relative' }} ref={dropdownRef}>
+      <button
+        onClick={() => setShowDropdown(!showDropdown)}
+        title="Heading"
+        style={{
+          padding: '6px 12px',
+          border: '1px solid #e5e7eb',
+          background: 'white',
+          cursor: 'pointer',
+          borderRadius: '4px',
+          minWidth: '100px',
+          height: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          position: 'relative',
+          fontSize: currentBlockType === 'paragraph' ? '14px' : 
+                    currentBlockType === 'h1' ? '20px' :
+                    currentBlockType === 'h2' ? '18px' :
+                    currentBlockType === 'h3' ? '16px' : '14px',
+          fontWeight: currentBlockType !== 'paragraph' ? 'bold' : 'normal',
+        }}
+      >
+        <span>{item.label || getCurrentLabel()}</span>
+        <span style={{ marginLeft: '8px', fontSize: '10px' }}>▼</span>
+      </button>
+      {showDropdown && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: '4px',
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            padding: '4px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            zIndex: 1000,
+            minWidth: '150px',
+          }}
+        >
+          {headingOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleHeadingSelect(option.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: 'none',
+                background: currentBlockType === option.value ? '#e5e7eb' : 'transparent',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                textAlign: 'left',
+                fontSize: option.value === 'paragraph' ? '14px' : 
+                          option.value === 'h1' ? '20px' :
+                          option.value === 'h2' ? '18px' :
+                          option.value === 'h3' ? '16px' : '14px',
+                fontWeight: option.value !== 'paragraph' ? 'bold' : 'normal',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              onMouseEnter={(e) => {
+                if (currentBlockType !== option.value) {
+                  e.currentTarget.style.background = '#f3f4f6';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentBlockType !== option.value) {
+                  e.currentTarget.style.background = 'transparent';
+                } else {
+                  e.currentTarget.style.background = '#e5e7eb';
+                }
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ToolbarButton({ item, active = false, disabled = false, onAction, currentBlockType }: ToolbarButtonProps) {
+  const isHeading = item.type.startsWith('heading') && item.type !== 'headingDropdown';
   const headingLevel = isHeading ? parseInt(item.type.replace('heading', '')) : null;
   const label = item.label || getToolbarLabel(item.type);
 
   if (item.type === 'divider') {
     return <Divider />;
+  }
+
+  // Heading dropdown
+  if (item.type === 'headingDropdown') {
+    return <HeadingDropdown item={item} onAction={onAction} currentBlockType={currentBlockType} />;
   }
 
   // Color picker buttons
@@ -373,7 +514,7 @@ export function Toolbar({ items, onFullscreenToggle, isFullscreen = false }: Too
     );
   }, [editor, $updateToolbar]);
 
-  const handleToolbarAction = useCallback((item: ToolbarItem, color?: string) => {
+  const handleToolbarAction = useCallback((item: ToolbarItem, color?: string, headingType?: string) => {
     const { type } = item;
 
     // Handle fullscreen toggle
@@ -441,8 +582,51 @@ export function Toolbar({ items, onFullscreenToggle, isFullscreen = false }: Too
       return;
     }
 
-    // Handle heading formatting
-    if (type.startsWith('heading')) {
+    // Handle heading dropdown
+    if (type === 'headingDropdown' && headingType) {
+      if (headingType === 'paragraph') {
+        editor.update(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            const anchorNode = selection.anchor.getNode();
+            let element = anchorNode.getKey() === 'root' ? anchorNode : anchorNode.getTopLevelElementOrThrow();
+            const elementKey = element.getKey();
+            const elementNode = editor.getElementByKey(elementKey);
+            
+            if (elementNode !== null && $isHeadingNode(element) && $isElementNode(element)) {
+              const paragraphNode = $createParagraphNode();
+              const children = element.getChildren();
+              paragraphNode.append(...children);
+              element.replace(paragraphNode);
+              paragraphNode.selectEnd();
+            }
+          }
+        });
+      } else {
+        const level = headingType as HeadingTagType;
+        editor.update(() => {
+          const selection = $getSelection();
+          if ($isRangeSelection(selection)) {
+            const anchorNode = selection.anchor.getNode();
+            let element = anchorNode.getKey() === 'root' ? anchorNode : anchorNode.getTopLevelElementOrThrow();
+            const elementKey = element.getKey();
+            const elementNode = editor.getElementByKey(elementKey);
+            
+            if (elementNode !== null && $isElementNode(element)) {
+              const headingNode = $createHeadingNode(level);
+              const children = element.getChildren();
+              headingNode.append(...children);
+              element.replace(headingNode);
+              headingNode.selectEnd();
+            }
+          }
+        });
+      }
+      return;
+    }
+
+    // Handle individual heading formatting (for backwards compatibility)
+    if (type.startsWith('heading') && type !== 'headingDropdown') {
       const levelNum = parseInt(type.replace('heading', ''));
       const level = `h${levelNum}` as HeadingTagType;
       editor.update(() => {
@@ -546,6 +730,7 @@ export function Toolbar({ items, onFullscreenToggle, isFullscreen = false }: Too
             active={state.active}
             disabled={state.disabled}
             onAction={handleToolbarAction}
+            currentBlockType={blockType}
           />
         );
       })}
