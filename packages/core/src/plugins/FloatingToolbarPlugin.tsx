@@ -37,9 +37,6 @@ export function FloatingToolbarPlugin({
   const [coords, setCoords] = useState<{ x: number, y: number } | null>(null);
   const [editorRootElement, setEditorRootElement] = useState<HTMLElement | null>(null);
 
-  // If disabled, don't render anything
-  if (!enabled || !floatingItems || floatingItems.length === 0) return null;
-
   // Get the editor's root element
   useEffect(() => {
     const rootElement = editor.getRootElement();
@@ -213,6 +210,8 @@ export function FloatingToolbarPlugin({
     }
   }, [editor]);
 
+  // Early returns after all hooks have been called
+  if (!enabled || !floatingItems || floatingItems.length === 0) return null;
   if (!coords) return null;
 
   return createPortal(

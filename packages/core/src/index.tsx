@@ -1,5 +1,6 @@
 import React from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import type { InitialConfigType } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
@@ -37,7 +38,7 @@ const defaultTheme = {
 import type { ToolbarItem } from './types/toolbar';
 
 export interface LuxeEditorProps {
-  initialConfig: any;
+  initialConfig: Partial<InitialConfigType>;
   showFloatingToolbar?: boolean;
   showToolbar?: boolean;
   toolbarItems?: ToolbarItem[];
