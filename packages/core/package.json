@@ -1,5 +1,5 @@
 {
-  "name": "@luxe-edit/core",
+  "name": "luxe-edit",
   "version": "0.1.0",
   "description": "A beautiful, customizable rich text editor for React built on Lexical with customizable toolbars and floating toolbar support",
   "keywords": [
@@ -33,6 +33,9 @@
     "prepublishOnly": "yarn build"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/amide-init/luxe-edit.git"
