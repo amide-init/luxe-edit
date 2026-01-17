@@ -59,20 +59,20 @@ luxe-edit/
 
 ```bash
 # Using npm
-npm install @luxe-edit/core
+npm install luxe-edit
 
 # Using yarn
-yarn add @luxe-edit/core
+yarn add luxe-edit
 
 # Using pnpm
-pnpm add @luxe-edit/core
+pnpm add luxe-edit
 ```
 
 ### Basic Usage
 
 ```tsx
-import { LuxeEditor } from '@luxe-edit/core';
-import '@luxe-edit/core/index.css';
+import { LuxeEditor } from 'luxe-edit';
+import 'luxe-edit/index.css';
 
 function App() {
   return (
@@ -89,8 +89,8 @@ function App() {
 ### With Custom Toolbar
 
 ```tsx
-import { LuxeEditor, type ToolbarItem } from '@luxe-edit/core';
-import '@luxe-edit/core/index.css';
+import { LuxeEditor, type ToolbarItem } from 'luxe-edit';
+import 'luxe-edit/index.css';
 
 function App() {
   const toolbarItems: ToolbarItem[] = [
@@ -251,7 +251,7 @@ yarn build
 yarn dev
 
 # Or use workspace commands
-yarn workspace @luxe-edit/core build
+yarn workspace luxe-edit build
 yarn workspace demo dev
 ```
 
@@ -266,10 +266,10 @@ yarn workspace demo dev
 ### **Monorepo Setup (Yarn Workspaces)**
 
 - **Root `package.json`**: Defines workspaces (`packages/*`, `apps/*`)
-- **Local linking**: The `demo` app automatically uses the local `@luxe-edit/core` package
+- **Local linking**: The `demo` app automatically uses the local `luxe-edit` package
 - **Shared dependencies**: Common dependencies are hoisted to the root `node_modules`
 
-### **Core Package (`@luxe-edit/core`)**
+### **Core Package (`luxe-edit`)**
 
 **Build Process:**
 1. **Source**: `src/index.tsx` (TypeScript + React/JSX)
@@ -283,7 +283,7 @@ yarn workspace demo dev
 **Package Configuration:**
 ```json
 {
-  "name": "@luxe-edit/core",
+  "name": "luxe-edit",
   "main": "./dist/index.js",        // CommonJS entry
   "module": "./dist/index.mjs",     // ESM entry
   "types": "./dist/index.d.ts",     // TypeScript types
@@ -327,12 +327,12 @@ cd packages/core
 # Login to npm (first time only)
 npm login
 
-# Publish
-npm publish --access public  # --access public needed for scoped packages
+# Publish (with 2FA code)
+npm publish --otp=YOUR_6_DIGIT_CODE
 
 # Or use version bumping
 npm version patch  # 1.0.0 -> 1.0.1
-npm publish --access public
+npm publish --otp=YOUR_6_DIGIT_CODE
 ```
 
 ### **What Gets Published:**
@@ -448,10 +448,10 @@ cd packages/core
 # Create a tarball (without publishing)
 npm pack
 
-# This creates: luxe-edit-core-1.0.0.tgz
+# This creates: luxe-edit-1.0.0.tgz
 
 # In another project, test it:
-npm install /path/to/luxe-edit-core-1.0.0.tgz
+npm install /path/to/luxe-edit-1.0.0.tgz
 ```
 
 ## 📋 Pre-Publishing Checklist
@@ -465,7 +465,7 @@ npm install /path/to/luxe-edit-core-1.0.0.tgz
 - [ ] Test the tarball locally
 - [ ] Update changelog
 - [ ] Tag git release
-- [ ] Run `npm publish --access public`
+- [ ] Run `npm publish --otp=YOUR_6_DIGIT_CODE`
 
 ## ✅ Current Features
 

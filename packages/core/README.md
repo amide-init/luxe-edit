@@ -1,22 +1,22 @@
-# @luxe-edit/core
+# luxe-edit
 
 A beautiful, customizable rich text editor for React built on Lexical with customizable toolbars and floating toolbar support.
 
 ## Installation
 
 ```bash
-npm install @luxe-edit/core
+npm install luxe-edit
 # or
-yarn add @luxe-edit/core
+yarn add luxe-edit
 # or
-pnpm add @luxe-edit/core
+pnpm add luxe-edit
 ```
 
 ## Quick Start
 
 ```tsx
-import { LuxeEditor } from '@luxe-edit/core';
-import '@luxe-edit/core/index.css';
+import { LuxeEditor } from 'luxe-edit';
+import 'luxe-edit/index.css';
 
 function App() {
   return (
