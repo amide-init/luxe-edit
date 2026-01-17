@@ -35,7 +35,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amide-init/luxe-edit.git"
+    "url": "git+https://github.com/amide-init/luxe-edit.git"
   },
   "homepage": "https://github.com/amide-init/luxe-edit#readme",
   "bugs": {
