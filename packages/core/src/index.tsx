@@ -51,7 +51,7 @@ export interface LuxeEditorProps {
 export function LuxeEditor({ 
   initialConfig, 
   showFloatingToolbar = true,
-  showToolbar = false,
+  showToolbar = true,
   toolbarItems,
   floatingToolbarItems,
   children 
@@ -84,8 +84,17 @@ export function LuxeEditor({
 
   // Default toolbar items if none provided
   const defaultToolbarItems: ToolbarItem[] = [
+    { type: 'undo' },
+    { type: 'redo' },
+    { type: 'divider' },
     { type: 'bold' },
     { type: 'italic' },
+    { type: 'underline' },
+    { type: 'strikethrough' },
+    { type: 'divider' },
+    { type: 'headingDropdown' },
+    { type: 'divider' },
+    { type: 'link' },
   ];
   const items = toolbarItems || defaultToolbarItems;
 
