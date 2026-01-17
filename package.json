@@ -10,6 +10,7 @@
     "dev": "yarn workspace demo dev",
     "build:demo": "yarn workspace demo build",
     "publish:core": "cd packages/core && npm publish --registry=https://registry.npmjs.org/",
+    "publish:core:yarn": "cd packages/core && yarn publish",
     "publish:core:dry": "cd packages/core && npm pack --dry-run"
   },
   "author": "amin uddin",
