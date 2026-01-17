@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 // 1. Import your local library!
-import { LuxeEditor, type ToolbarItem } from '@luxe-edit/core';
+import { LuxeEditor, type ToolbarItem } from 'luxe-edit';
 // 2. Import the styles from the core package
-import '@luxe-edit/core/index.css'; 
+import 'luxe-edit/index.css'; 
 
 function App() {
   const [showFloatingToolbar, setShowFloatingToolbar] = React.useState(true);
@@ -36,7 +36,7 @@ function App() {
   return (
     <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
       <h1>LuxeEdit Demo</h1>
-      <p>This editor is powered by your local @luxe-edit/core package.</p>
+      <p>This editor is powered by your local luxe-edit package.</p>
       
       {/* Toggle toolbar controls */}
       <div style={{ marginBottom: '16px', padding: '12px', background: '#f3f4f6', borderRadius: '6px' }}>

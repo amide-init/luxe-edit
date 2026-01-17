@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@luxe-edit/core": "0.1.0",
+    "luxe-edit": "0.1.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
