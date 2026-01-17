@@ -35,11 +35,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/luxe-edit.git"
+    "url": "https://github.com/amide-init/luxe-edit.git"
   },
-  "homepage": "https://github.com/yourusername/luxe-edit#readme",
+  "homepage": "https://github.com/amide-init/luxe-edit#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/luxe-edit/issues"
+    "url": "https://github.com/amide-init/luxe-edit/issues"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
