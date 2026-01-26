@@ -1,5 +1,5 @@
 import React from 'react';
-import { LuxeEditor, type ToolbarItem, getEditorText, getEditorJSON } from 'luxe-edit';
+import { LuxeEditor, type ToolbarItem, getEditorText, getEditorJSON, getEditorFormattedText } from 'luxe-edit';
 
 export function Playground() {
   const [showFloatingToolbar, setShowFloatingToolbar] = React.useState(true);
@@ -160,11 +160,12 @@ export function Playground() {
               toolbarItems={toolbarItems}
               onChange={(editorState) => {
                 const text = getEditorText(editorState);
+                const formattedText = getEditorFormattedText(editorState);
                 const json = getEditorJSON(editorState);
                 const words = text.trim().split(/\s+/).filter(word => word.length > 0);
                 
                 setEditorContent({
-                  text,
+                  text: formattedText, // Use formatted text instead of plain text
                   json,
                   wordCount: words.length,
                   charCount: text.length
