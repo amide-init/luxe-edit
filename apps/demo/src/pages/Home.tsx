@@ -1,15 +1,10 @@
 import React from 'react';
-import { LuxeEditor, type ToolbarItem, getEditorText, getEditorJSON } from 'luxe-edit';
+import { Link } from 'react-router-dom';
+import { LuxeEditor, type ToolbarItem } from 'luxe-edit';
 
 export function Home() {
   const [showFloatingToolbar, setShowFloatingToolbar] = React.useState(true);
   const [showTopToolbar, setShowTopToolbar] = React.useState(true);
-  const [editorContent, setEditorContent] = React.useState({
-    text: '',
-    json: null as any,
-    wordCount: 0,
-    charCount: 0
-  });
 
   const toolbarItems: ToolbarItem[] = [
     { type: 'undo' },
@@ -192,7 +187,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* Live Demo Section */}
+      {/* Try It Out Section */}
       <section style={{ 
         padding: '60px 20px', 
         maxWidth: '1000px', 
@@ -212,47 +207,16 @@ export function Home() {
           marginBottom: '32px',
           fontSize: '1.1rem'
         }}>
-          Select text to see the floating toolbar, or use the top toolbar for formatting options.
+          Experience the full editor with live output preview in our interactive playground.
         </p>
         
-        {/* Demo Controls */}
-        <div style={{ 
-          marginBottom: '24px', 
-          padding: '16px', 
-          background: '#f8fafc', 
-          borderRadius: '8px',
-          display: 'flex',
-          gap: '24px',
-          flexWrap: 'wrap',
-          justifyContent: 'center'
-        }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={showTopToolbar} 
-              onChange={(e) => setShowTopToolbar(e.target.checked)}
-              style={{ cursor: 'pointer' }}
-            />
-            <span style={{ color: '#475569', fontWeight: 500 }}>Top Toolbar</span>
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={showFloatingToolbar} 
-              onChange={(e) => setShowFloatingToolbar(e.target.checked)}
-              style={{ cursor: 'pointer' }}
-            />
-            <span style={{ color: '#475569', fontWeight: 500 }}>Floating Toolbar</span>
-          </label>
-        </div>
-        
-        {/* Editor Demo */}
+        {/* Quick Demo */}
         <div style={{
           background: '#fff',
           borderRadius: '12px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           overflow: 'hidden',
-          marginBottom: '24px'
+          marginBottom: '32px'
         }}>
           <LuxeEditor 
             initialConfig={{ 
@@ -262,128 +226,37 @@ export function Home() {
             showToolbar={showTopToolbar}
             showFloatingToolbar={showFloatingToolbar}
             toolbarItems={toolbarItems}
-            onChange={(editorState) => {
-              const text = getEditorText(editorState);
-              const json = getEditorJSON(editorState);
-              const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-              
-              setEditorContent({
-                text,
-                json,
-                wordCount: words.length,
-                charCount: text.length
-              });
-            }}
           />
         </div>
 
-        {/* Content Preview Section */}
-        {editorContent.text && (
-          <div style={{
-            background: '#f8fafc',
-            borderRadius: '12px',
-            padding: '24px',
-            marginTop: '24px'
-          }}>
-            <h3 style={{ 
-              margin: '0 0 16px 0', 
-              color: '#1e293b', 
-              fontSize: '1.3rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}>
-              <span>📊</span> Editor Content
-            </h3>
-            
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '16px',
-              marginBottom: '20px'
-            }}>
-              <div style={{
-                padding: '12px',
-                background: '#fff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0'
-              }}>
-                <div style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '4px' }}>Words</div>
-                <div style={{ color: '#1e293b', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                  {editorContent.wordCount}
-                </div>
-              </div>
-              <div style={{
-                padding: '12px',
-                background: '#fff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0'
-              }}>
-                <div style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '4px' }}>Characters</div>
-                <div style={{ color: '#1e293b', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                  {editorContent.charCount}
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '16px'
-            }}>
-              <div>
-                <h4 style={{ 
-                  margin: '0 0 8px 0', 
-                  color: '#475569', 
-                  fontSize: '0.9rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  Plain Text
-                </h4>
-                <div style={{
-                  background: '#fff',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  maxHeight: '200px',
-                  overflow: 'auto',
-                  fontSize: '0.9rem',
-                  color: '#1e293b',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word'
-                }}>
-                  {editorContent.text || '(empty)'}
-                </div>
-              </div>
-              <div>
-                <h4 style={{ 
-                  margin: '0 0 8px 0', 
-                  color: '#475569', 
-                  fontSize: '0.9rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  JSON Output
-                </h4>
-                <div style={{
-                  background: '#1e293b',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  maxHeight: '200px',
-                  overflow: 'auto',
-                  fontSize: '0.85rem',
-                  color: '#fff',
-                  fontFamily: 'monospace'
-                }}>
-                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {JSON.stringify(editorContent.json, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* CTA to Playground */}
+        <div style={{ textAlign: 'center' }}>
+          <Link
+            to="/playground"
+            style={{
+              display: 'inline-block',
+              padding: '16px 32px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 600,
+              fontSize: '1.1rem',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 12px -1px rgba(102, 126, 234, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            🎮 Open Playground →
+          </Link>
+        </div>
       </section>
 
       {/* Quick Start Section */}

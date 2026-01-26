@@ -55,6 +55,9 @@ export function Navbar() {
           <Link to="/" style={linkStyle('/')}>
             Home
           </Link>
+          <Link to="/playground" style={linkStyle('/playground')}>
+            Playground
+          </Link>
           <Link to="/docs" style={linkStyle('/docs')}>
             Docs
           </Link>
