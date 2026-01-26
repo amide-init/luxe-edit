@@ -1,9 +1,15 @@
 import React from 'react';
-import { LuxeEditor, type ToolbarItem } from 'luxe-edit';
+import { LuxeEditor, type ToolbarItem, getEditorText, getEditorJSON } from 'luxe-edit';
 
 export function Home() {
   const [showFloatingToolbar, setShowFloatingToolbar] = React.useState(true);
   const [showTopToolbar, setShowTopToolbar] = React.useState(true);
+  const [editorContent, setEditorContent] = React.useState({
+    text: '',
+    json: null as any,
+    wordCount: 0,
+    charCount: 0
+  });
 
   const toolbarItems: ToolbarItem[] = [
     { type: 'undo' },
@@ -245,7 +251,8 @@ export function Home() {
           background: '#fff',
           borderRadius: '12px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          marginBottom: '24px'
         }}>
           <LuxeEditor 
             initialConfig={{ 
@@ -255,8 +262,128 @@ export function Home() {
             showToolbar={showTopToolbar}
             showFloatingToolbar={showFloatingToolbar}
             toolbarItems={toolbarItems}
+            onChange={(editorState) => {
+              const text = getEditorText(editorState);
+              const json = getEditorJSON(editorState);
+              const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+              
+              setEditorContent({
+                text,
+                json,
+                wordCount: words.length,
+                charCount: text.length
+              });
+            }}
           />
         </div>
+
+        {/* Content Preview Section */}
+        {editorContent.text && (
+          <div style={{
+            background: '#f8fafc',
+            borderRadius: '12px',
+            padding: '24px',
+            marginTop: '24px'
+          }}>
+            <h3 style={{ 
+              margin: '0 0 16px 0', 
+              color: '#1e293b', 
+              fontSize: '1.3rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <span>📊</span> Editor Content
+            </h3>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '16px',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                padding: '12px',
+                background: '#fff',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <div style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '4px' }}>Words</div>
+                <div style={{ color: '#1e293b', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                  {editorContent.wordCount}
+                </div>
+              </div>
+              <div style={{
+                padding: '12px',
+                background: '#fff',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <div style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '4px' }}>Characters</div>
+                <div style={{ color: '#1e293b', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                  {editorContent.charCount}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '16px'
+            }}>
+              <div>
+                <h4 style={{ 
+                  margin: '0 0 8px 0', 
+                  color: '#475569', 
+                  fontSize: '0.9rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Plain Text
+                </h4>
+                <div style={{
+                  background: '#fff',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  maxHeight: '200px',
+                  overflow: 'auto',
+                  fontSize: '0.9rem',
+                  color: '#1e293b',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word'
+                }}>
+                  {editorContent.text || '(empty)'}
+                </div>
+              </div>
+              <div>
+                <h4 style={{ 
+                  margin: '0 0 8px 0', 
+                  color: '#475569', 
+                  fontSize: '0.9rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  JSON Output
+                </h4>
+                <div style={{
+                  background: '#1e293b',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  maxHeight: '200px',
+                  overflow: 'auto',
+                  fontSize: '0.85rem',
+                  color: '#fff',
+                  fontFamily: 'monospace'
+                }}>
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {JSON.stringify(editorContent.json, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Quick Start Section */}
@@ -283,10 +410,10 @@ export function Home() {
 npm install luxe-edit
 
 // Import
-import { LuxeEditor } from 'luxe-edit';
+import { LuxeEditor, getEditorText, getEditorJSON } from 'luxe-edit';
 import 'luxe-edit/index.css';
 
-// Use
+// Basic Usage
 function App() {
   return (
     <LuxeEditor 
@@ -294,6 +421,26 @@ function App() {
         namespace: 'MyEditor',
         theme: {} 
       }} 
+    />
+  );
+}
+
+// With onChange to capture content
+function App() {
+  const [content, setContent] = React.useState('');
+
+  return (
+    <LuxeEditor 
+      initialConfig={{ namespace: 'MyEditor' }}
+      onChange={(editorState) => {
+        // Get plain text
+        const text = getEditorText(editorState);
+        setContent(text);
+        
+        // Or get JSON
+        const json = getEditorJSON(editorState);
+        console.log('Editor JSON:', json);
+      }}
     />
   );
 }`}
