@@ -1,14 +1,17 @@
 import React from 'react';
-import { LuxeEditor, type ToolbarItem, getEditorText, getEditorJSON, getEditorFormattedText } from 'luxe-edit';
+import { LuxeEditor, type ToolbarItem, getEditorText, getEditorJSON, getEditorDOM, getEditorTree } from 'luxe-edit';
+import type { LexicalEditor } from 'lexical';
 
 export function Playground() {
   const [showFloatingToolbar, setShowFloatingToolbar] = React.useState(true);
   const [showTopToolbar, setShowTopToolbar] = React.useState(true);
-  const [viewMode, setViewMode] = React.useState<'text' | 'json'>('text');
+  const [viewMode, setViewMode] = React.useState<'tree' | 'dom' | 'json'>('tree');
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
+  const [editorInstance, setEditorInstance] = React.useState<LexicalEditor | null>(null);
   const [editorContent, setEditorContent] = React.useState({
-    text: '',
     json: null as any,
+    tree: null as any,
+    dom: '',
     wordCount: 0,
     charCount: 0
   });
@@ -20,6 +23,20 @@ export function Playground() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Update DOM when switching to DOM view or when editor instance changes
+  React.useEffect(() => {
+    if (viewMode === 'dom' && editorInstance) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        const dom = getEditorDOM(editorInstance);
+        setEditorContent(prev => ({
+          ...prev,
+          dom
+        }));
+      });
+    }
+  }, [viewMode, editorInstance]);
 
   const toolbarItems: ToolbarItem[] = [
     { type: 'undo' },
@@ -158,18 +175,38 @@ export function Playground() {
               showToolbar={showTopToolbar}
               showFloatingToolbar={showFloatingToolbar}
               toolbarItems={toolbarItems}
-              onChange={(editorState) => {
-                const text = getEditorText(editorState);
-                const formattedText = getEditorFormattedText(editorState);
+              onChange={(editorState, editor) => {
+                const plainText = getEditorText(editorState);
                 const json = getEditorJSON(editorState);
-                const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+                const tree = getEditorTree(json);
+                const words = plainText.trim().split(/\s+/).filter(word => word.length > 0);
+                
+                if (editor) {
+                  setEditorInstance(editor);
+                }
+                
+                // Update DOM asynchronously to ensure it's ready
+                const updateDOM = () => {
+                  if (editor) {
+                    requestAnimationFrame(() => {
+                      const dom = getEditorDOM(editor);
+                      setEditorContent(prev => ({
+                        ...prev,
+                        dom
+                      }));
+                    });
+                  }
+                };
                 
                 setEditorContent({
-                  text: formattedText, // Use formatted text instead of plain text
                   json,
+                  tree,
+                  dom: '', // Will be updated asynchronously
                   wordCount: words.length,
-                  charCount: text.length
+                  charCount: plainText.length
                 });
+                
+                updateDOM();
               }}
             />
           </div>
@@ -207,7 +244,7 @@ export function Playground() {
               <span>📊</span> Output
             </h2>
             
-            {/* Mode Switcher */}
+            {/* View Mode Switcher */}
             <div style={{
               display: 'flex',
               gap: '4px',
@@ -217,20 +254,36 @@ export function Playground() {
               border: '1px solid #e2e8f0'
             }}>
               <button
-                onClick={() => setViewMode('text')}
+                onClick={() => setViewMode('tree')}
                 style={{
                   padding: '6px 12px',
                   borderRadius: '4px',
                   border: 'none',
-                  background: viewMode === 'text' ? '#3b82f6' : 'transparent',
-                  color: viewMode === 'text' ? '#fff' : '#64748b',
+                  background: viewMode === 'tree' ? '#3b82f6' : 'transparent',
+                  color: viewMode === 'tree' ? '#fff' : '#64748b',
                   cursor: 'pointer',
-                  fontWeight: viewMode === 'text' ? 600 : 400,
+                  fontWeight: viewMode === 'tree' ? 600 : 400,
                   fontSize: '0.85rem',
                   transition: 'all 0.2s'
                 }}
               >
-                📝 Parsed
+                🌳 Tree
+              </button>
+              <button
+                onClick={() => setViewMode('dom')}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  background: viewMode === 'dom' ? '#3b82f6' : 'transparent',
+                  color: viewMode === 'dom' ? '#fff' : '#64748b',
+                  cursor: 'pointer',
+                  fontWeight: viewMode === 'dom' ? 600 : 400,
+                  fontSize: '0.85rem',
+                  transition: 'all 0.2s'
+                }}
+              >
+                🏗️ DOM
               </button>
               <button
                 onClick={() => setViewMode('json')}
@@ -293,76 +346,149 @@ export function Playground() {
 
             {/* Content Display */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              {viewMode === 'text' ? (
-                <>
-                  <h4 style={{ 
-                    margin: '0 0 12px 0', 
-                    color: '#475569', 
-                    fontSize: '0.85rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    <span>📝</span> Parsed Text Output
-                  </h4>
-                  <div style={{
-                    background: '#f8fafc',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    flex: 1,
-                    overflow: 'auto',
-                    fontSize: '0.95rem',
-                    color: '#1e293b',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    lineHeight: '1.6',
-                    fontFamily: 'system-ui, -apple-system, sans-serif'
-                  }}>
-                    {editorContent.text || '(empty - start typing to see output)'}
-                  </div>
-                </>
+              {viewMode === 'tree' ? (
+                <TreeView tree={editorContent.tree} />
+              ) : viewMode === 'dom' ? (
+                <DOMView dom={editorContent.dom} />
               ) : (
-                <>
-                  <h4 style={{ 
-                    margin: '0 0 12px 0', 
-                    color: '#475569', 
-                    fontSize: '0.85rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    <span>🔧</span> JSON Output
-                  </h4>
-                  <div style={{
-                    background: '#1e293b',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    flex: 1,
-                    overflow: 'auto',
-                    fontSize: '0.85rem',
-                    color: '#fff',
-                    fontFamily: 'Monaco, Menlo, "Courier New", monospace'
-                  }}>
-                    <pre style={{ 
-                      margin: 0, 
-                      whiteSpace: 'pre-wrap', 
-                      wordBreak: 'break-word',
-                      lineHeight: '1.5'
-                    }}>
-                      {editorContent.json ? JSON.stringify(editorContent.json, null, 2) : '(empty - start typing to see JSON output)'}
-                    </pre>
-                  </div>
-                </>
+                <JSONView json={editorContent.json} />
               )}
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Tree View Component
+function TreeView({ tree }: { tree: any }) {
+  const renderTreeNode = (node: any, depth: number = 0): React.ReactNode => {
+    if (!node) return null;
+    
+    const indent = depth * 20;
+    const hasChildren = node.children && node.children.length > 0;
+    
+    return (
+      <div key={node.key || Math.random()} style={{ marginLeft: `${indent}px` }}>
+        <div style={{
+          padding: '4px 8px',
+          margin: '2px 0',
+          background: depth === 0 ? '#1e40af' : depth % 2 === 0 ? '#1e293b' : '#334155',
+          borderRadius: '4px',
+          fontSize: '0.85rem',
+          color: '#fff',
+          fontFamily: 'Monaco, Menlo, "Courier New", monospace',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          {hasChildren && (
+            <span style={{ color: '#60a5fa' }}>▼</span>
+          )}
+          <span style={{ color: '#fbbf24', fontWeight: 600 }}>{node.type}</span>
+          {node.tag && (
+            <span style={{ color: '#34d399' }}>&lt;{node.tag}&gt;</span>
+          )}
+          {node.text && (
+            <span style={{ color: '#e5e7eb', opacity: 0.8 }}>"{node.text}"</span>
+          )}
+          {node.format !== undefined && node.format > 0 && (
+            <span style={{ color: '#a78bfa', fontSize: '0.75rem' }}>
+              format: {node.format}
+            </span>
+          )}
+          {node.key && (
+            <span style={{ color: '#9ca3af', fontSize: '0.7rem' }}>
+              ({node.key.substring(0, 8)}...)
+            </span>
+          )}
+        </div>
+        {hasChildren && (
+          <div style={{ marginLeft: '8px' }}>
+            {node.children.map((child: any, index: number) => 
+              renderTreeNode(child, depth + 1)
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  return (
+    <div style={{
+      background: '#0f172a',
+      padding: '20px',
+      borderRadius: '8px',
+      flex: 1,
+      overflow: 'auto',
+      fontSize: '0.85rem',
+      color: '#fff',
+      fontFamily: 'Monaco, Menlo, "Courier New", monospace'
+    }}>
+      {tree ? (
+        renderTreeNode(tree)
+      ) : (
+        <div style={{ color: '#64748b', textAlign: 'center', padding: '40px' }}>
+          (empty - start typing to see tree structure)
+        </div>
+      )}
+    </div>
+  );
+}
+
+// DOM View Component
+function DOMView({ dom }: { dom: string }) {
+  return (
+    <div style={{
+      background: '#1e293b',
+      padding: '20px',
+      borderRadius: '8px',
+      flex: 1,
+      overflow: 'auto',
+      fontSize: '0.85rem',
+      color: '#fff',
+      fontFamily: 'Monaco, Menlo, "Courier New", monospace'
+    }}>
+      {dom ? (
+        <pre style={{ 
+          margin: 0, 
+          whiteSpace: 'pre-wrap', 
+          wordBreak: 'break-word',
+          lineHeight: '1.5'
+        }}>
+          {dom}
+        </pre>
+      ) : (
+        <div style={{ color: '#64748b', textAlign: 'center', padding: '40px' }}>
+          (empty - start typing to see DOM output)
+        </div>
+      )}
+    </div>
+  );
+}
+
+// JSON View Component
+function JSONView({ json }: { json: any }) {
+  return (
+    <div style={{
+      background: '#1e293b',
+      padding: '20px',
+      borderRadius: '8px',
+      flex: 1,
+      overflow: 'auto',
+      fontSize: '0.85rem',
+      color: '#fff',
+      fontFamily: 'Monaco, Menlo, "Courier New", monospace'
+    }}>
+      <pre style={{ 
+        margin: 0, 
+        whiteSpace: 'pre-wrap', 
+        wordBreak: 'break-word',
+        lineHeight: '1.5'
+      }}>
+        {json ? JSON.stringify(json, null, 2) : '(empty - start typing to see JSON output)'}
+      </pre>
     </div>
   );
 }
