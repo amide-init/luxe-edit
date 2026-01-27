@@ -1113,20 +1113,6 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
-luxe-edit@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/luxe-edit/-/luxe-edit-0.1.0.tgz#65a3d0b0ceb8d4382ef272fc65607cbf51f32f9e"
-  integrity sha512-AOcARcg65K3FvwSWiYYwAC9B5rg+QREsjosxW+2ZEwY0ef23AiHdSnW567whIck+tqRZx2I+swKiPBniOWT7Dg==
-  dependencies:
-    "@lexical/code" "^0.39.0"
-    "@lexical/link" "^0.39.0"
-    "@lexical/list" "^0.39.0"
-    "@lexical/react" "^0.39.0"
-    "@lexical/rich-text" "^0.39.0"
-    "@lexical/selection" "^0.39.0"
-    "@lexical/utils" "^0.39.0"
-    lexical "^0.39.0"
-
 magic-string@^0.30.17:
   version "0.30.21"
   resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.30.21.tgz#56763ec09a0fa8091df27879fd94d19078c00d91"

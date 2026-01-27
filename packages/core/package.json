@@ -38,11 +38,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amide-init/luxe-edit.git"
+    "url": "git+https://github.com/luxe-tools/luxe-edit.git"
   },
-  "homepage": "https://github.com/amide-init/luxe-edit#readme",
+  "homepage": "https://github.com/luxe-tools/luxe-edit#readme",
   "bugs": {
-    "url": "https://github.com/amide-init/luxe-edit/issues"
+    "url": "https://github.com/luxe-tools/luxe-edit/issues"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",

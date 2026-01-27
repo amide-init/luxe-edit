@@ -8,13 +8,15 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { HeadingNode } from '@lexical/rich-text';
 import { LinkNode, AutoLinkNode } from '@lexical/link';
-import { ParagraphNode, TextNode } from 'lexical';
+import { ParagraphNode, TextNode, EditorState, LexicalEditor } from 'lexical';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin';
 import { Toolbar } from './plugins/Toolbar';
 
 // Export types and components
 export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin';
 export { Toolbar } from './plugins/Toolbar';
+export { getEditorJSON, getEditorText, getEditorFormattedText, getEditorDOM, getEditorTree } from './utils';
 export type { ToolbarItem } from './types/toolbar';
 export type { ToolbarItemType } from './types/toolbar';
 
@@ -45,6 +47,8 @@ export interface LuxeEditorProps {
   showToolbar?: boolean;
   toolbarItems?: ToolbarItem[];
   floatingToolbarItems?: ToolbarItem[]; // Separate items for floating toolbar (optional)
+  onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
+  ignoreInitialChange?: boolean; // Skip onChange on initial mount (default: true)
   children?: React.ReactNode;
 }
 
@@ -54,6 +58,8 @@ export function LuxeEditor({
   showToolbar = true,
   toolbarItems,
   floatingToolbarItems,
+  onChange,
+  ignoreInitialChange = true,
   children 
 }: LuxeEditorProps) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -73,12 +79,40 @@ export function LuxeEditor({
 
   // Extract theme from initialConfig to avoid override
   const { theme: _, ...restInitialConfig } = initialConfig;
+  
+  // Get user's onUpdate if provided (it's not in the type but can be passed)
+  const userOnUpdate = (restInitialConfig as any).onUpdate;
+
+  // Internal component to handle onChange without requiring a separate plugin file
+  // This component runs inside LexicalComposer so it can access the editor instance
+  const OnChangeHandler = React.memo(() => {
+    const [editor] = useLexicalComposerContext();
+    const isInitialChangeRef = React.useRef(true);
+
+    React.useEffect(() => {
+      if (!onChange) return;
+
+      return editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+        // Skip initial change if ignoreInitialChange is true
+        if (ignoreInitialChange && isInitialChangeRef.current && prevEditorState.isEmpty()) {
+          isInitialChangeRef.current = false;
+          return;
+        }
+        
+        isInitialChangeRef.current = false;
+        onChange(editorState, editor);
+      });
+    }, [editor, onChange, ignoreInitialChange]);
+
+    return null;
+  });
 
   const config = {
     namespace: 'LuxeEditor',
     theme: mergedTheme,
     nodes: defaultNodes,
     onError: (error: Error) => console.error(error),
+    onUpdate: userOnUpdate,
     ...restInitialConfig,
   };
 
@@ -115,6 +149,7 @@ export function LuxeEditor({
         />
         <HistoryPlugin />
         <LinkPlugin />
+        {onChange && <OnChangeHandler />}
         {showFloatingToolbar && (
           <FloatingToolbarPlugin 
             enabled={true} 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { LuxeEditor, type ToolbarItem } from 'luxe-edit';
 
 export function Home() {
@@ -186,7 +187,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* Live Demo Section */}
+      {/* Try It Out Section */}
       <section style={{ 
         padding: '60px 20px', 
         maxWidth: '1000px', 
@@ -206,46 +207,16 @@ export function Home() {
           marginBottom: '32px',
           fontSize: '1.1rem'
         }}>
-          Select text to see the floating toolbar, or use the top toolbar for formatting options.
+          Experience the full editor with live output preview in our interactive playground.
         </p>
         
-        {/* Demo Controls */}
-        <div style={{ 
-          marginBottom: '24px', 
-          padding: '16px', 
-          background: '#f8fafc', 
-          borderRadius: '8px',
-          display: 'flex',
-          gap: '24px',
-          flexWrap: 'wrap',
-          justifyContent: 'center'
-        }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={showTopToolbar} 
-              onChange={(e) => setShowTopToolbar(e.target.checked)}
-              style={{ cursor: 'pointer' }}
-            />
-            <span style={{ color: '#475569', fontWeight: 500 }}>Top Toolbar</span>
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={showFloatingToolbar} 
-              onChange={(e) => setShowFloatingToolbar(e.target.checked)}
-              style={{ cursor: 'pointer' }}
-            />
-            <span style={{ color: '#475569', fontWeight: 500 }}>Floating Toolbar</span>
-          </label>
-        </div>
-        
-        {/* Editor Demo */}
+        {/* Quick Demo */}
         <div style={{
           background: '#fff',
           borderRadius: '12px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          marginBottom: '32px'
         }}>
           <LuxeEditor 
             initialConfig={{ 
@@ -256,6 +227,35 @@ export function Home() {
             showFloatingToolbar={showFloatingToolbar}
             toolbarItems={toolbarItems}
           />
+        </div>
+
+        {/* CTA to Playground */}
+        <div style={{ textAlign: 'center' }}>
+          <Link
+            to="/playground"
+            style={{
+              display: 'inline-block',
+              padding: '16px 32px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: '#fff',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: 600,
+              fontSize: '1.1rem',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 12px -1px rgba(102, 126, 234, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            🎮 Open Playground →
+          </Link>
         </div>
       </section>
 
@@ -283,10 +283,10 @@ export function Home() {
 npm install luxe-edit
 
 // Import
-import { LuxeEditor } from 'luxe-edit';
+import { LuxeEditor, getEditorText, getEditorJSON } from 'luxe-edit';
 import 'luxe-edit/index.css';
 
-// Use
+// Basic Usage
 function App() {
   return (
     <LuxeEditor 
@@ -294,6 +294,26 @@ function App() {
         namespace: 'MyEditor',
         theme: {} 
       }} 
+    />
+  );
+}
+
+// With onChange to capture content
+function App() {
+  const [content, setContent] = React.useState('');
+
+  return (
+    <LuxeEditor 
+      initialConfig={{ namespace: 'MyEditor' }}
+      onChange={(editorState) => {
+        // Get plain text
+        const text = getEditorText(editorState);
+        setContent(text);
+        
+        // Or get JSON
+        const json = getEditorJSON(editorState);
+        console.log('Editor JSON:', json);
+      }}
     />
   );
 }`}

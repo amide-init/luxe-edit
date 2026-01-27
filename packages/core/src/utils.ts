@@ -1,0 +1,220 @@
+import { EditorState } from 'lexical';
+import { $getRoot, $isElementNode, $isTextNode } from 'lexical';
+import { $isHeadingNode } from '@lexical/rich-text';
+
+/**
+ * Get the editor content as JSON
+ */
+export function getEditorJSON(editorState: EditorState): any {
+  return editorState.toJSON();
+}
+
+/**
+ * Get the editor content as plain text
+ */
+export function getEditorText(editorState: EditorState): string {
+  let text = '';
+  editorState.read(() => {
+    const root = $getRoot();
+    text = root.getTextContent();
+  });
+  return text;
+}
+
+/**
+ * Format a text node with markdown syntax
+ */
+function formatTextNode(text: string, format: number): string {
+  // Lexical format flags (bitwise):
+  // Bold: 1 (0b0001 = 1)
+  // Italic: 2 (0b0010 = 2)
+  // Underline: 4 (0b0100 = 4)
+  // Strikethrough: 8 (0b1000 = 8)
+  
+  const isBold = (format & 1) !== 0;
+  const isItalic = (format & 2) !== 0;
+  const isUnderline = (format & 4) !== 0;
+  const isStrikethrough = (format & 8) !== 0;
+  
+  // Handle bold + italic combination first (***text***)
+  if (isBold && isItalic) {
+    text = `***${text}***`;
+  } else if (isBold) {
+    text = `**${text}**`;
+  } else if (isItalic) {
+    text = `*${text}*`;
+  }
+  
+  // Apply underline (wraps around bold/italic)
+  if (isUnderline) {
+    text = `__${text}__`;
+  }
+  
+  // Apply strikethrough (outermost)
+  if (isStrikethrough) {
+    text = `~~${text}~~`;
+  }
+  
+  return text;
+}
+
+/**
+ * Get the editor content as formatted text (preserves headings and formatting)
+ */
+export function getEditorFormattedText(editorState: EditorState): string {
+  let formattedText = '';
+  
+  editorState.read(() => {
+    const root = $getRoot();
+    const children = root.getChildren();
+    
+    const formatNode = (node: any): string => {
+      let result = '';
+      
+      if ($isHeadingNode(node)) {
+        // Heading node - get the level and format its children
+        const tag = node.getTag(); // h1, h2, h3, etc.
+        const level = parseInt(tag.replace('h', ''));
+        const hashes = '#'.repeat(level);
+        
+        // Traverse children to get formatted text (bold, italic, etc.)
+        const headingChildren = node.getChildren();
+        let headingText = '';
+        
+        for (const child of headingChildren) {
+          if ($isTextNode(child)) {
+            headingText += formatTextNode(child.getTextContent(), child.getFormat());
+          } else if ($isElementNode(child)) {
+            headingText += formatNode(child);
+          }
+        }
+        
+        result += `${hashes} ${headingText}\n\n`;
+      } else if ($isElementNode(node)) {
+        // Element node - traverse its children
+        const elementChildren = node.getChildren();
+        let nodeText = '';
+        
+        for (const child of elementChildren) {
+          if ($isTextNode(child)) {
+            nodeText += formatTextNode(child.getTextContent(), child.getFormat());
+          } else if ($isElementNode(child)) {
+            nodeText += formatNode(child);
+          }
+        }
+        
+        const nodeType = node.getType();
+        if (nodeType === 'paragraph') {
+          result += nodeText + '\n\n';
+        } else if (nodeType === 'list') {
+          result += nodeText;
+        } else {
+          result += nodeText;
+        }
+      } else if ($isTextNode(node)) {
+        // Text node - apply formatting
+        result += formatTextNode(node.getTextContent(), node.getFormat());
+      }
+      
+      return result;
+    };
+    
+    for (const child of children) {
+      formattedText += formatNode(child);
+    }
+  });
+  
+  return formattedText.trim();
+}
+
+/**
+ * Get DOM HTML from editor instance
+ */
+export function getEditorDOM(editor: any): string {
+  if (!editor) return '';
+  
+  try {
+    const rootElement = editor.getRootElement();
+    if (!rootElement) return '';
+    
+    // Lexical's editor root element contains the contentEditable div
+    // The structure is typically: rootElement > div[contenteditable="true"] > content
+    const contentEditable = rootElement.querySelector('[contenteditable="true"]');
+    
+    if (contentEditable) {
+      // Get the innerHTML of the contentEditable element
+      const html = contentEditable.innerHTML || '';
+      // Clean up empty content
+      return html.trim() || '';
+    }
+    
+    // Fallback: check if root element itself is contentEditable
+    if (rootElement.hasAttribute('contenteditable') && rootElement.getAttribute('contenteditable') === 'true') {
+      return rootElement.innerHTML || '';
+    }
+    
+    // Another fallback: get all direct children that aren't toolbars
+    const children = Array.from(rootElement.children).filter((child: any) => {
+      // Skip toolbars and other non-content elements
+      const id = child.id || '';
+      const className = child.className || '';
+      return !id.includes('toolbar') && !className.includes('toolbar');
+    });
+    
+    if (children.length > 0) {
+      // Find the contentEditable child
+      for (const child of children) {
+        if ((child as HTMLElement).hasAttribute('contenteditable')) {
+          return (child as HTMLElement).innerHTML || '';
+        }
+      }
+      // If no contentEditable found, return first child's HTML
+      return (children[0] as HTMLElement).innerHTML || '';
+    }
+    
+    // Last resort: return root element's innerHTML
+    return rootElement.innerHTML || '';
+  } catch (error) {
+    console.error('Error getting editor DOM:', error);
+    return '';
+  }
+}
+
+/**
+ * Convert JSON to tree structure for display
+ */
+export function getEditorTree(json: any): any {
+  if (!json || !json.root) return null;
+  
+  const buildTree = (node: any, depth: number = 0): any => {
+    if (!node) return null;
+    
+    const nodeType = node.type || 'unknown';
+    const key = node.key || '';
+    const children = node.children || [];
+    
+    const treeNode: any = {
+      type: nodeType,
+      key: key,
+      depth: depth,
+      children: []
+    };
+    
+    // Add node-specific properties
+    if (node.tag) treeNode.tag = node.tag;
+    if (node.format !== undefined) treeNode.format = node.format;
+    if (node.text) treeNode.text = node.text.substring(0, 50) + (node.text.length > 50 ? '...' : '');
+    if (node.style) treeNode.style = node.style;
+    if (node.indent) treeNode.indent = node.indent;
+    if (node.direction) treeNode.direction = node.direction;
+    
+    // Recursively build children
+    if (Array.isArray(children)) {
+      treeNode.children = children.map((child: any) => buildTree(child, depth + 1)).filter(Boolean);
+    }
+    
+    return treeNode;
+  };
+  
+  return buildTree(json.root);
+}

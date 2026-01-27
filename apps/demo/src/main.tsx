@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { Home } from './pages/Home';
 import { Docs } from './pages/Docs';
 import { Contributors } from './pages/Contributors';
+import { Playground } from './pages/Playground';
 import 'luxe-edit/index.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/playground" element={<Playground />} />
         <Route path="/docs" element={<Docs />} />
         <Route path="/contributors" element={<Contributors />} />
       </Routes>

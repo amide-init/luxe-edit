@@ -2,7 +2,7 @@
 
 A modern, feature-rich React-based rich text editor powered by Lexical with customizable toolbars and floating toolbar support.
 
-🌐 **Live Demo**: [https://amide-init.github.io/luxe-edit/](https://amide-init.github.io/luxe-edit/)
+🌐 **Live Demo**: [https://luxe-tools.github.io/luxe-edit/](https://luxe-tools.github.io/luxe-edit/)
 
 ## 📁 Project Structure
 
@@ -57,7 +57,7 @@ luxe-edit/
 
 ## 🚀 Quick Start
 
-🌐 **[View Live Demo →](https://amide-init.github.io/luxe-edit/)**
+🌐 **[View Live Demo →](https://luxe-tools.github.io/luxe-edit/)**
 
 ### Installation (After Publishing)
 
